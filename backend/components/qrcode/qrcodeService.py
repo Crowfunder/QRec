@@ -1,4 +1,4 @@
-from random import random
+import random
 
 from flask import request, send_file, Response
 from sqlalchemy import select
@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import hashlib
 from backend.app import db
+from backend.database.models import Worker
 
 def generateQRCode():
     pass
@@ -30,6 +31,8 @@ def decodeQRImage(file_stream) -> str:
     """
     Input a file stream (bytes) and return decoded QR code data as string.
     """
+    if hasattr(file_stream, 'seek'):
+        file_stream.seek(0) # Ensure we're at the start of the file
     file_bytes = np.frombuffer(file_stream.read(), np.uint8)
     img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
     if img is None:
@@ -50,15 +53,13 @@ def decodeQRImage(file_stream) -> str:
     raise NoCodeFoundError("Nie wykryto kodu QR.")
 
 
-def genereteSecret(worker_id: int, name: str) -> str:
+def generateSecret(worker_id: int, name: str) -> str:
     rand_value = str(random.randint(100000, 999999))
     raw_string = f"{worker_id}:{name}:{rand_value}"
     secret_hash = hashlib.sha256(raw_string.encode()).hexdigest()
     return secret_hash
 
 def getWorkerByQRCodeSecret(secret: str):
-    from backend.database.models import Worker
-
     stmt = select(Worker).where(Worker.secret == secret)
     result = db.session.execute(stmt).scalar_one_or_none()
     return result
