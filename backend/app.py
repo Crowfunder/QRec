@@ -3,6 +3,7 @@ import sys
 from flask import Flask, render_template
 from werkzeug.debug import DebuggedApplication
 import logging
+from flasgger import Swagger
 
 from backend.database.models import *
 from backend.database.models import db
@@ -76,7 +77,32 @@ def create_app():
     # Defining components
     from .components.qrcode.qrcodeController import bp as bp_download
     app.register_blueprint(bp_download)
-    
+
+    # --------- Swagger UI config -----------
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": 'apispec',
+                "route": '/apispec.json',
+                "rule_filter": lambda rule: True,  # Ważne: pozwala widzieć endpointy z blueprintów
+                "model_filter": lambda tag: True,
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/"  # Pod tym adresem będzie dokumentacja
+    }
+
+    template = {
+        "swagger": "2.0",
+        "info": {
+            "title": "API Documentation",
+            "description": "Flask project API Documentation",
+            "version": "1.0.0"
+        }
+    }
+
+    Swagger(app, config=swagger_config, template=template)
+
     return app
-
-

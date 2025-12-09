@@ -4,3 +4,5 @@ Flask-SQLAlchemy
 Werkzeug
 flask-marshmallow
 requests
+opencv-python # OpenCV library for QR code processing
+flasgger

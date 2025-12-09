@@ -28,6 +28,15 @@ class Worker(db.Model):
     face_image = db.Column(db.String, nullable=False)
     expiration_date = db.Column(db.DateTime, nullable=False)
     secret = db.Column(db.String, nullable=False)
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "face_image": self.face_image,
+            "expiration_date": self.expiration_date.isoformat() if self.expiration_date else None,
+            "secret": self.secret
+        }
+
 
 @dataclass
 class Entry(db.Model):
@@ -37,4 +46,13 @@ class Entry(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('workers.id', ondelete='CASCADE'), nullable=True)
     code = db.Column(db.Integer, nullable=False)
     face_image = db.Column(db.String, nullable=True)
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "date": self.date.isoformat() if self.date else None,
+            "worker_id": self.worker_id,
+            "code": self.code,
+            "face_image": self.face_image
+        }
+
 
