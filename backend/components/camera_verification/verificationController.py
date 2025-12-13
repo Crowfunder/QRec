@@ -1,18 +1,12 @@
 from flask import Blueprint, request, jsonify
 
-from backend.components.camera_verification.qrcode.qrcodeService import (
-    getWorkerFromQRCode,
-)
-from backend.components.camera_verification.faceid.faceidService import (
-    verifyWorkerFace
-)
-from backend.components.utils.imageUtils import (
-    parseImage
-)
+from backend.components.camera_verification.qrcode.qrcodeService import getWorkerFromQRCode
+from backend.components.camera_verification.faceid.faceidService import verifyWorkerFace
+from backend.components.camera_verification.error_handling.errorService import VerificationResponseHandler
+from backend.components.utils.imageUtils import parseImage
 
 
 bp = Blueprint('bp_verification', __name__)
-
 
 @bp.route('/api/skan', methods=['POST'])
 def post_camera_scan():
@@ -22,20 +16,21 @@ def post_camera_scan():
     # Load and parse image
     img = parseImage(request.files['file'])
 
+    http_code, response = None, None
     try:
         worker = getWorkerFromQRCode(img)
-        worker_valid = verifyWorkerFace(worker, img)
-        if worker_valid:
-            return jsonify({'code': 0, 'text': 'Verification successful.'})
-        else:
-            raise WorkerCodeMismatchError("Znaleziony kod nie zgadza się z pracownikiem")
+        verifyWorkerFace(worker, img)
+        http_code = 200
+        response = VerificationResponseHandler()
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 400  # TODO: Fix, add proper error handling
+        response = VerificationResponseHandler(e)
+        if response.code == -1:
+            http_code = 500
+        elif response.code < 10:
+            http_code = 400
+        else:
+            http_code = 503
 
-
-class WorkerCodeMismatchError(Exception):
-    """
-    Raised when detected face does not match with database
-    """
-    pass
+    finally:
+        return jsonify({response.asdict()}), http_code

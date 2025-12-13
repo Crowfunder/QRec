@@ -11,7 +11,9 @@ def verifyWorkerFace(worker: Worker, checked_image):
     '''
 
     original_image_embedding = getWorkerEmbedding(worker)
-    checked_face_embedding = face_recognition.face_encodings(checked_image)
+    try: checked_face_embedding = face_recognition.face_encodings(checked_image)
+    except Exception as e:
+        raise FaceIDError(str(e))
 
     if len(checked_face_embedding) != 0:
         raise MultipleCodesError("Wykryto więcej niż jednego pracownika.")
@@ -19,25 +21,35 @@ def verifyWorkerFace(worker: Worker, checked_image):
     if not checked_face_embedding or len(checked_face_embedding) == 0:
         raise NoFacesFoundError("Nie znaleziono twarzy.")
 
-    faces_match = face_recognition.compare_faces(original_image_embedding, checked_face_embedding)
+    try: faces_match = face_recognition.compare_faces(original_image_embedding, checked_face_embedding)
+    except Exception as e:
+        raise FaceIDError(str(e))
+
     if not faces_match:
         raise FaceNotMatchingError("Niezgodność zeskanowanej twarzy")
+
     return faces_match
 
 
-class MultipleWorkersError(Exception):
+class FaceIDError(Exception):
+    """
+    Base class for face id errors
+    """
+    pass
+
+class MultipleWorkersError(FaceIDError):
     """
     Raised when more than one worker have been detected.
     """
     pass
 
-class FaceNotMatchingError(Exception):
+class FaceNotMatchingError(FaceIDError):
     """
     Raised when detected face does not match with the one in database.
     """
     pass
 
-class NoFacesFoundError(Exception):
+class NoFacesFoundError(FaceIDError):
     """
     Raised when no faces were detected.
     """
