@@ -74,8 +74,8 @@ def create_app():
         return render_template('404.html'), 404
 
     # Defining components
-    from backend.components.camera_verification.qrcode import bp as bp_download
-    app.register_blueprint(bp_download)
+    from backend.components.camera_verification.verificationController import bp as bp_verification
+    app.register_blueprint(bp_verification)
 
     # --------- Swagger UI config -----------
     swagger_config = {

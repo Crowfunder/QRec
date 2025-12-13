@@ -6,7 +6,7 @@ click==8.3.1
 colorama==0.4.6 ; sys_platform == 'win32'
 dlib==20.0.0
 face-recognition==1.3.0
-face-recognition-models==0.3.0
+face-recognition-models @ git+https://github.com/ageitgey/face_recognition_models@e67de717267507d1e9246de95692eb8be736ab61
 flasgger==0.9.7.1
 flask==3.1.2
 flask-marshmallow==1.3.0
@@ -28,6 +28,7 @@ pyyaml==6.0.3
 referencing==0.37.0
 requests==2.32.5
 rpds-py==0.30.0
+setuptools==80.9.0
 six==1.17.0
 sqlalchemy==2.0.44
 typing-extensions==4.15.0

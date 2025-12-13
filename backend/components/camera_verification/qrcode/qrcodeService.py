@@ -9,13 +9,15 @@ from backend.app import db
 from backend.database.models import Worker
 
 
-def getWorkerFromQRCode(file_stream):
+def getWorkerFromQRCode(img):
     try:
-        qr_secret = decodeQRImage(file_stream)
+        qr_secret = decodeQRImage(img)
         worker = getWorkerByQRCodeSecret(qr_secret)
+        if not worker:
+            raise InvalidCodeError("Wykryto niepoprawny kod QR")
         return worker
 
-    except (MultipleCodesError, NoCodeFoundError, ValueError) as e:
+    except (MultipleCodesError, NoCodeFoundError, InvalidCodeError, ValueError) as e:
         raise e
 
     except Exception as e:
@@ -43,16 +45,15 @@ class NoCodeFoundError(QRCodeError):
     """Raised when no code is detected"""
     pass
 
-def decodeQRImage(file_stream) -> str:
+class InvalidCodeError(QRCodeError):
+    """Raised when invalid code is detected"""
+    pass
+
+def decodeQRImage(img) -> str:
     """
-    Input a file stream (bytes) and return decoded QR code data as string.
+    Input an image loaded into numpy array and return decoded QR code data as string.
     """
-    if hasattr(file_stream, 'seek'):
-        file_stream.seek(0) # Ensure we're at the start of the file
-    file_bytes = np.frombuffer(file_stream.read(), np.uint8)
-    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-    if img is None:
-        raise ValueError("Nie udało się przetworzyć pliku jako obrazu.")
+
     qr_detector = cv2.QRCodeDetector()
     retval, decoded_info, points, straight_qrcode = qr_detector.detectAndDecodeMulti(img)
     if retval and decoded_info is not None:
