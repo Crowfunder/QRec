@@ -25,7 +25,8 @@ class Worker(db.Model):
     __tablename__ = 'workers'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    face_image = db.Column(db.Blob, nullable=False)
+    #face_image = db.Column(db.Blob, nullable=False)
+    face_image = db.Column(db.LargeBinary, nullable=False) #----> bez tego flask się wywala
     expiration_date = db.Column(db.DateTime, nullable=False)
     secret = db.Column(db.String, nullable=False)
     def to_dict(self):
