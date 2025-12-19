@@ -3,6 +3,9 @@ import cv2
 
 
 def parse_image(file):
+    '''
+    Decodes image from bytes to ndarray
+    '''
     file_bytes = np.frombuffer(file.read(), np.uint8)
     image_bgr = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
     img = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)

@@ -15,12 +15,13 @@ def post_camera_scan():
         return jsonify({'error': 'Brak pliku w żądaniu (oczekiwano klucza "file").'}), 400
 
     # Load and parse image
-    img = parse_image(request.files['file'])
+    img_parsed = parse_image(request.files['file'])
+    img_bytes = request.files['file'].read()
 
     http_code, response, worker = None, None, None
     try:
-        worker = get_worker_from_qr_code(img)
-        verify_worker_face(worker, img)
+        worker = get_worker_from_qr_code(img_parsed)
+        verify_worker_face(worker, img_parsed)
         http_code = 200
         response = verification_response_handler()
 
@@ -36,5 +37,5 @@ def post_camera_scan():
             http_code = 403  # Permission denied
 
     finally:
-        log_worker_entry(response.code, response.message, worker, img)
+        log_worker_entry(response.code, response.message, worker, img_bytes)
         return jsonify({response.asdict()}), http_code
