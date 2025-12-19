@@ -2,7 +2,7 @@ from backend.components.camera_verification.error_handling.errorConfig import (
     EXCEPTION_MAP
 )
 
-def VerificationResponseHandler(e: Exception = None):
+def verification_response_handler(e: Exception = None):
     """
     Handles passed exception, returns respective error code and message
     """

@@ -2,7 +2,7 @@ import io
 import numpy as np
 import face_recognition
 
-def getWorkerEmbedding(worker):
+def get_worker_embedding(worker):
     """
     Returns and decodes worker face embedding from blob to np.array
     """
@@ -12,7 +12,7 @@ def getWorkerEmbedding(worker):
     return arr
 
 
-def createWorkerEmbedding(img):
+def create_worker_embedding(img):
     """
     Creates and encodes worker face embedding into BLOB for database
     """

@@ -2,15 +2,15 @@ import face_recognition
 
 from backend.components.camera_verification.qrcode.qrcodeService import MultipleCodesError
 from backend.database.models import Worker
-from backend.components.workers.workerService import getWorkerEmbedding
+from backend.components.workers.workerService import get_worker_embedding
 
-def verifyWorkerFace(worker: Worker, checked_image):
+def verify_worker_face(worker: Worker, checked_image):
     '''
     # todo: moze encoding powinien być przechowywany w db zamiast obrazka?
     # TODO: Może być więcej niż 1 zdjęcie! Możemy to wykorzystać do poprawy dokładności
     '''
 
-    original_image_embedding = getWorkerEmbedding(worker)
+    original_image_embedding = get_worker_embedding(worker)
     try: checked_face_embedding = face_recognition.face_encodings(checked_image)
     except Exception as e:
         raise FaceIDError(str(e))

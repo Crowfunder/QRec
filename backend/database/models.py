@@ -45,6 +45,7 @@ class Entry(db.Model):
     date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC))
     worker_id = db.Column(db.Integer, db.ForeignKey('workers.id', ondelete='CASCADE'), nullable=True)
     code = db.Column(db.Integer, nullable=False)
+    message = db.Column(db.String, nullable=False)
     face_image = db.Column(db.String, nullable=True)
     def to_dict(self):
         return {
@@ -52,6 +53,7 @@ class Entry(db.Model):
             "date": self.date.isoformat() if self.date else None,
             "worker_id": self.worker_id,
             "code": self.code,
+            "message": self.message,
             "face_image": self.face_image
         }
 
