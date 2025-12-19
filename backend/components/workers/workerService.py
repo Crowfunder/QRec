@@ -6,7 +6,7 @@ def get_worker_embedding(worker):
     """
     Returns and decodes worker face embedding from blob to np.array
     """
-    blob = worker.getFace()
+    blob = worker.face_image_embedding
     buffer = io.BytesIO(blob)
     arr = np.load(buffer)
     return arr

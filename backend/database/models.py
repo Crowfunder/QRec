@@ -25,14 +25,14 @@ class Worker(db.Model):
     __tablename__ = 'workers'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    face_image = db.Column(db.Blob, nullable=False)
+    face_embedding = db.Column(db.Blob, nullable=False)
     expiration_date = db.Column(db.DateTime, nullable=False)
     secret = db.Column(db.String, nullable=False)
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
-            "face_image": self.face_image,
+            "face_embedding": self.face_embedding,
             "expiration_date": self.expiration_date.isoformat() if self.expiration_date else None,
             "secret": self.secret
         }
@@ -46,7 +46,7 @@ class Entry(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('workers.id', ondelete='CASCADE'), nullable=True)
     code = db.Column(db.Integer, nullable=False)
     message = db.Column(db.String, nullable=False)
-    face_image = db.Column(db.String, nullable=True)
+    face_image = db.Column(db.Blob, nullable=True)
     def to_dict(self):
         return {
             "id": self.id,
