@@ -2,20 +2,20 @@ import io
 import numpy as np
 import face_recognition
 
-from backend.components.camera_verification.qrcode.qrcodeService import generateSecret
+from backend.components.camera_verification.qrcode.qrcodeService import generate_secret
 from backend.database.models import Worker
 
-def getWorkerEmbedding(worker):
+def get_worker_embedding(worker):
     """
     Returns and decodes worker face embedding from blob to np.array
     """
-    blob = worker.getFace()
+    blob = worker.face_image_embedding
     buffer = io.BytesIO(blob)
     arr = np.load(buffer)
     return arr
 
 
-def createWorkerEmbedding(img):
+def create_worker_embedding(img):
     """
     Creates and encodes worker face embedding into BLOB for database
     """
@@ -27,7 +27,7 @@ def createWorkerEmbedding(img):
     return blob
 
 def newWorker(db, name, face_image, expiration_date):
-    face_embedding_blob = createWorkerEmbedding(face_image)
+    face_embedding_blob = create_worker_embedding(face_image)
     worker = Worker(
         name=name,
         face_image=face_embedding_blob,
@@ -38,7 +38,7 @@ def newWorker(db, name, face_image, expiration_date):
     db.session.flush()
     worker_id = worker.id
     name = worker.name
-    new_secret_value = generateSecret(worker_id, name)
+    new_secret_value = generate_secret(worker_id, name)
     worker.secret = new_secret_value
     db.session.commit()
     return worker
@@ -63,7 +63,7 @@ def updateWorkerFaceImage(db, worker_id, new_face_image):
     worker = db.session.get(Worker, worker_id)
     if not worker:
         raise ValueError(f"Worker with id {worker_id} not found")
-    new_face_embedding_blob = createWorkerEmbedding(new_face_image)
+    new_face_embedding_blob = create_worker_embedding(new_face_image)
     worker.face_image = new_face_embedding_blob
     db.session.commit()
     return worker

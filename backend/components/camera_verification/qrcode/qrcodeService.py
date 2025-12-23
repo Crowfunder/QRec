@@ -12,10 +12,10 @@ from backend.app import db
 from backend.database.models import Worker
 
 
-def getWorkerFromQRCode(img):
+def get_worker_from_qr_code(img):
     try:
-        qr_secret = decodeQRImage(img)
-        worker = getWorkerByQRCodeSecret(qr_secret)
+        qr_secret = decode_qr_image(img)
+        worker = get_worker_by_qr_code_secret(qr_secret)
         if not worker:
             raise InvalidCodeError("Wykryto niepoprawny kod QR")
         return worker
@@ -29,10 +29,10 @@ def getWorkerFromQRCode(img):
 
 
 
-def generateQRCode():
+def generate_qr_code():
     pass
 
-def validateQRCode():
+def validate_qr_code():
     pass
 
 
@@ -52,7 +52,7 @@ class InvalidCodeError(QRCodeError):
     """Raised when invalid code is detected"""
     pass
 
-def decodeQRImage(img) -> str:
+def decode_qr_image(img) -> str:
     """
     Input an image loaded into numpy array and return decoded QR code data as string.
     """
@@ -73,7 +73,7 @@ def decodeQRImage(img) -> str:
     raise NoCodeFoundError("Nie wykryto kodu QR.")
 
 
-def generateSecret(worker_id: int, name: str) -> str:
+def generate_secret(worker_id: int, name: str) -> str:
     rand_value = str(random.randint(100000, 999999))
     data = {
         "worker_id": worker_id,
@@ -95,7 +95,7 @@ def decryptSecret(encrypted_secret: str):
         print(f"Błąd deszyfrowania: {e}")
         return None
 
-def getWorkerByQRCodeSecret(secret: str):
+def get_worker_by_qr_code_secret(secret: str):
     stmt = select(Worker).where(Worker.secret == secret)
     result = db.session.execute(stmt).scalar_one_or_none()
     return result
