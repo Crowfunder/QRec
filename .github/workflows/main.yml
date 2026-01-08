@@ -33,6 +33,9 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v4
         with:
+          cache: 'pip'
+          cache-dependency-path: |
+              backend/pyproject.toml
           path: docs/
 
   # Deploy the artifact to GitHub pages.
