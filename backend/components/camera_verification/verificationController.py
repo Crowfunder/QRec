@@ -11,6 +11,9 @@ bp = Blueprint('bp_verification', __name__)
 
 @bp.route('/api/skan', methods=['POST'])
 def post_camera_scan():
+    '''
+    TODO: Swagger docstring for post_camera_scan
+    '''
     if 'file' not in request.files:
         return jsonify({'error': 'Brak pliku w żądaniu (oczekiwano klucza "file").'}), 400
 

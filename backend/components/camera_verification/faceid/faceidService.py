@@ -4,19 +4,33 @@ from backend.components.camera_verification.qrcode.qrcodeService import Multiple
 from backend.database.models import Worker
 from backend.components.workers.workerService import get_worker_embedding
 
-def verify_worker_face(worker: Worker, checked_image):
+def verify_worker_face(worker: Worker, checked_image) -> list:
+    '''
+    Verify if the scanned face indeed belongs to the worker decoded from the QR code.
+
+    **Parameters**:
+    - `worker` (Worker): Worker detected from the QR code.
+    - `checked_image` (ndarray): Image decoded to ndarray.
+    
+    **Returns**:
+    - `List` - indices of faces that match
+
+    **Raises**:
+    - `MultipleWorkersError` - More than one face detected on the image.
+    - `NoFacesFoundError` - No faces found on the image
+    - `FaceNotMatchingError` - The face on the image and the worker face do not
+    - `FaceIDError` - Generic, uncaught error in face recognition library.
+
     '''
     # todo: moze encoding powinien być przechowywany w db zamiast obrazka?
     # TODO: Może być więcej niż 1 zdjęcie! Możemy to wykorzystać do poprawy dokładności
-    '''
-
     original_image_embedding = get_worker_embedding(worker)
     try: checked_face_embedding = face_recognition.face_encodings(checked_image)
     except Exception as e:
         raise FaceIDError(str(e))
 
     if len(checked_face_embedding) != 0:
-        raise MultipleCodesError("Wykryto więcej niż jednego pracownika.")
+        raise MultipleWorkersError("Wykryto więcej niż jednego pracownika.")
 
     if not checked_face_embedding or len(checked_face_embedding) == 0:
         raise NoFacesFoundError("Nie znaleziono twarzy.")

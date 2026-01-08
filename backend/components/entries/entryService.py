@@ -1,7 +1,20 @@
 from backend.app import db
 from backend.database.models import Entry, Worker
 
-def log_worker_entry(code: int, message: str, worker: Worker = None, image=None):
+def log_worker_entry(code: int, message: str, worker: Worker|None = None, image=None) -> Entry:
+    '''
+    Log a worker entry.
+
+    **Parameters**:
+    - `code` (int): Numeric verification response code for the entry.
+    - `message` (str): Human-readable verification response message.
+    - `worker` (Worker|None): Worker, if a worker was found.
+    - `image` (bytes|None): If the policy enforces saving image of the event, raw image bytes.
+
+    **Returns**:
+    - `Entry`: Database entry object.
+    '''
+
     if worker is None:
         worker_id = None
     else:
