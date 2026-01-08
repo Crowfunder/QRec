@@ -7,3 +7,4 @@ BABEL_DEFAULT_LOCALE = 'en'
 TEMPLATES_AUTO_RELOAD = True
 
 SECURITY_PASSWORD_SALT = ''
+QR_SECRET_KEY = b'bMpM5ECy4iwHXYyaQvflStzVrkjXn0D5SGM_cJG_zgY=' # Fernet.generate_key()
