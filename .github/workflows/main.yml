@@ -23,16 +23,19 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.14'
+          python-version: '3.13'
 
       # ADJUST THIS: install all dependencies (including pdoc)
-      - run: pip install -e backend/
+      - run: pip install backend/ --verbose
       # ADJUST THIS: build your documentation into docs/.
       # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
       - run: pdoc backend/ -o docs/
 
       - uses: actions/upload-pages-artifact@v4
         with:
+          cache: 'pip'
+          cache-dependency-path: |
+              backend/pyproject.toml
           path: docs/
 
   # Deploy the artifact to GitHub pages.
