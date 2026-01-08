@@ -5,6 +5,12 @@ import cv2
 def parse_image(file):
     '''
     Decodes image from bytes to ndarray
+
+    **Parameters**:
+    - `file` (bytes): Raw image bytes.
+    
+    **Returns**:
+    - `ndarray`: Image decoded into ndarray.
     '''
     file_bytes = np.frombuffer(file.read(), np.uint8)
     image_bgr = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)

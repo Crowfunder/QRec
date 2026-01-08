@@ -6,10 +6,18 @@ from backend.components.camera_verification.faceid.faceidService import (
 )
 
 class ErrorResponse:
+    '''
+    Response that is sent to the camera front-end.
+
+    **Parameters**:
+    - `code` (int): "Error" code for the response, refer to the `EXCEPTION_MAP` for more info. Similar to program exit code.
+    - `message` (str): Textual, human readable description for `ErrorResponse.code`.
+    - `logged` (bool): Decides whether this kind of entry should be logged or not. For use in backend.
+    '''
     def __init__(self, code, message, logged=True):
-        self.code = code
-        self.message = message
-        self.logged = logged
+        self.code: int = code
+        self.message: str = message
+        self.logged: bool = logged
         
     def asdict(self):
         return {
