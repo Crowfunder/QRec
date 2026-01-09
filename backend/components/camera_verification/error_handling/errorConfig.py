@@ -25,6 +25,9 @@ class ErrorResponse:
             'message': self.message,
             'logged': self.logged,
         }
+    
+    def __repr__(self):
+        return str(self.asdict())
         
 
 EXCEPTION_MAP = {
@@ -40,3 +43,7 @@ EXCEPTION_MAP = {
     FaceNotMatchingError     : ErrorResponse(21, "Wykryta twarz nie pasuje do kodu QR."),
     MultipleWorkersError     : ErrorResponse(22, "Wykryto więcej niż jednego pracownika."),
 }
+"""
+Maps Exceptions to ErrorResponse object definitions with various status codes and messages, 
+as well as information whether to log the event.
+"""
