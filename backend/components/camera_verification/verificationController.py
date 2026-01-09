@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from backend.components.camera_verification.qrcode.qrcodeService import get_worker_from_qr_code
+from backend.components.workers.workerService import get_worker_from_qr_code
 from backend.components.camera_verification.faceid.faceidService import verify_worker_face
 from backend.components.camera_verification.error_handling.errorService import verification_response_handler
 from backend.components.utils.imageUtils import parse_image

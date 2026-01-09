@@ -1,10 +1,12 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, send_file
 from datetime import datetime
+import io
 
 from backend.database.schema.schemas import WorkerSchema
 from backend.components.utils.imageUtils import parse_image
-from backend.components.workers.workerService import create_worker, extend_worker_expiration, update_worker_name, update_worker_face_image, get_all_workers, get_worker_by_id
-
+from backend.components.workers.workerService import (
+    create_worker, extend_worker_expiration, update_worker_name, update_worker_face_image, get_all_workers, get_worker_by_id, generate_worker_entry_pass
+)
 bp = Blueprint('bp_workers', __name__)
 
 @bp.route('/api/workers', defaults={'worker_id': None}, methods=['GET'])
@@ -39,7 +41,7 @@ def create_worker_endpoint():
     """
     [POST] Creates a new worker in the database.
 
-    **Request Body**:
+    **Form Body**:
     - `name` (str): The name of the worker.
     - `expiration_date` (str): The expiration date for the worker's access in ISO format.
     - `file` (FileStorage): The image file of the worker's face.
@@ -119,3 +121,24 @@ def invalidate_worker(worker_id):
     extend_worker_expiration(worker, expiration_date)
 
     return WorkerSchema(many=False).dump(worker), 200
+
+
+@bp.route('/api/workers/entrypass/<worker_id>', methods=['GET'])
+def get_worker_entry_pass(worker_id):
+    """
+    [GET] Return the worker entry pass for printing.
+
+    **Parameters**:
+    - `worker_id` (int): The ID of the worker's pass.
+
+    **Returns**:
+    - `bytes`: Entry pass image encoded as png.
+      - If the worker is not found, returns a 404 status code.
+    """
+    worker = get_worker_by_id(worker_id)
+    if not worker:
+        return 'Worker not found', 404
+
+    image = generate_worker_entry_pass(worker)
+
+    return send_file(io.BytesIO(image), mimetype="image/png", as_attachment=False), 200

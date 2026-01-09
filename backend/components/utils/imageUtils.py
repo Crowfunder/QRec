@@ -18,3 +18,25 @@ def parse_image(file_bytes):
     if img is None:
         raise ValueError("Nie udało się przetworzyć pliku jako obrazu.")
     return img
+
+
+def encode_image(img_array, encode_format=".png"):
+    '''
+    Encodes image into bytes from ndarray
+
+    **Parameters**:
+    - `img_array` (ndarray): Image decoded into ndarray
+    - `format` (str): Optional. Encoding format as file extension. Default .png
+
+    **Returns**:
+    - `bytes`: Raw image bytes
+
+    **Raises**:
+    - `ValueError` - CV2 failed to encode the image to the format.
+    '''
+
+    success, buffer = cv2.imencode(encode_format, img_array)
+    if not success:
+        raise ValueError(f"Image encoding to {encode_format} failed")
+    image_bytes = buffer.tobytes()
+    return image_bytes

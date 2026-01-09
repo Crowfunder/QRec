@@ -77,6 +77,9 @@ def create_app():
     from backend.components.camera_verification.verificationController import bp as bp_verification
     app.register_blueprint(bp_verification)
 
+    from backend.components.workers.workerController import bp as bp_workers
+    app.register_blueprint(bp_workers)
+
     # --------- Swagger UI config -----------
     swagger_config = {
         "headers": [],

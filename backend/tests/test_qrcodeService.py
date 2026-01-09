@@ -1,10 +1,10 @@
-from backend.components.camera_verification.qrcode import qrcodeService
+import backend.components.workers.workerService
 
 def test_generate_and_decrypt_secret_functional():
     worker_id = 67
     worker_name = "Six Seven"
-    secret = qrcodeService.generate_secret(worker_id, worker_name)
-    data = qrcodeService.decryptSecret(secret)
+    secret = backend.components.workers.workerService.generate_secret(worker_id, worker_name)
+    data = backend.components.workers.workerService.decrypt_worker_secret(secret)
 
     # Asercja 1: Upewnij się, że odszyfrowane dane są słownikiem
     assert isinstance(data, dict)
@@ -19,7 +19,7 @@ def test_generate_and_decrypt_secret_functional():
 
 def test_decrypt_secret():
     secret = 'gAAAAABpPdLUcBJbhCLwEX5HKf8mzB-sUIzAYQaQencHd--KaC4wbHRHlmdIfHSioWUMoZ_woRxjTsBVr30YQBRYv5xoicHjaERw2aGLvQ5Wgud1gaFNR7_zgTpNqzu96fsY-dQt3NvdRUXFmMKWiWV-9VgE99_HBg=='
-    data = qrcodeService.decryptSecret(secret)
+    data = backend.components.workers.workerService.decrypt_worker_secret(secret)
     assert data['worker_id'] == 67
     assert data['name'] == "Six Seven"
 
