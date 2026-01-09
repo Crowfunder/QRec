@@ -18,8 +18,8 @@ def post_camera_scan():
         return jsonify({'error': 'Brak pliku w żądaniu (oczekiwano klucza "file").'}), 400
 
     # Load and parse image
-    img_parsed = parse_image(request.files['file'])
     img_bytes = request.files['file'].read()
+    img_parsed = parse_image(img_bytes)
 
     http_code, response, worker = None, None, None
     try:
@@ -40,5 +40,6 @@ def post_camera_scan():
             http_code = 403  # Permission denied
 
     finally:
-        log_worker_entry(response.code, response.message, worker, img_bytes)
+        if response.logged:
+            log_worker_entry(response.code, response.message, worker, img_bytes)
         return jsonify(response.asdict()), http_code
