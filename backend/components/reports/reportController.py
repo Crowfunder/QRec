@@ -1,7 +1,8 @@
 import base64
 import io
-from flask import Blueprint, request, jsonify, render_template, make_response, send_file
-from xhtml2pdf import pisa  # Import biblioteki PDF
+import os
+from flask import Blueprint, request, jsonify, render_template, make_response, send_file, current_app
+from xhtml2pdf import pisa
 from backend.components.reports.reportService import get_report_data
 from datetime import datetime
 
@@ -203,7 +204,6 @@ def generate_pdf_report():
 
             report_data.append({
                 'id': entry.id,
-                # Formatowanie daty na czytelniejszy format (np. 2024-01-09 14:30)
                 'date': entry.date.strftime('%Y-%m-%d %H:%M:%S'),
                 'code': entry.code,
                 'message': entry.message,
@@ -212,7 +212,8 @@ def generate_pdf_report():
                 'face_image_b64': img_b64
             })
 
-        # Kontekst przekazywany do szablonu
+        font_path = os.path.join(current_app.config['STATIC_FOLDER'], 'fonts', 'Roboto-Regular.ttf')
+
         context = {
             'data': report_data,
             'count': len(report_data),
@@ -223,7 +224,8 @@ def generate_pdf_report():
                 'worker_id': worker_id,
                 'show_valid': show_valid,
                 'show_invalid': show_invalid
-            }
+            },
+            'font_path': font_path
         }
 
         # --- 4. Renderowanie HTML i konwersja na PDF ---

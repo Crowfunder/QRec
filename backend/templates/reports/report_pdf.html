@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <title>Raport Wejść</title>
     <style>
+        @font-face {
+            font-family: 'Roboto';
+            src: url('{{ font_path }}');
+        }
         @page {
             size: A4;
             margin: 1cm;
         }
         body {
-            font-family: sans-serif; /* xhtml2pdf używa wbudowanych fontów */
+            font-family: 'Roboto', sans-serif;
             font-size: 10pt;
             color: #333;
         }
