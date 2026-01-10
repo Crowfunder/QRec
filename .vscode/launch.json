@@ -19,6 +19,24 @@
                 "run"
             ],
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Flask: Profile App with cProfile",
+            "type": "python",
+            "request": "launch",
+            "program": "-m",
+            "args": [
+                "cProfile",
+                "-o",
+                "profile_output.prof",
+                "-m",
+                "flask",
+                "--app",
+                "backend/app",
+                "run"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

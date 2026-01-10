@@ -39,7 +39,7 @@ def verify_worker_face(worker: Worker, checked_image) -> list:
     except Exception as e:
         raise FaceIDError(str(e))
 
-    if not faces_match:
+    if not faces_match[0]:
         raise FaceNotMatchingError("Niezgodność zeskanowanej twarzy")
 
     return faces_match
