@@ -35,3 +35,4 @@ typing-extensions==4.15.0
 urllib3==2.6.1
 werkzeug==3.1.4
 cryptography
+xhtml2pdf
