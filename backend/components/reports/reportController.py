@@ -3,6 +3,7 @@ import io
 import os
 from flask import Blueprint, request, jsonify, render_template, make_response, send_file, current_app
 from xhtml2pdf import pisa
+from xhtml2pdf.files import pisaFileObject
 from backend.components.reports.reportService import get_report_data
 from datetime import datetime
 
@@ -232,6 +233,11 @@ def generate_pdf_report():
         html_content = render_template('reports/report_pdf.html', **context)
 
         pdf_output = io.BytesIO()
+
+        # On windows, file paths to the font break
+        # known issue, applying a monkeypatch
+        # https://github.com/xhtml2pdf/xhtml2pdf/issues/623#issuecomment-1372719452
+        pisaFileObject.getNamedFile = lambda self: self.uri 
         pisa_status = pisa.CreatePDF(
             io.BytesIO(html_content.encode('utf-8')),
             dest=pdf_output,
