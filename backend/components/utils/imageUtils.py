@@ -37,6 +37,6 @@ def encode_image(img_array, encode_format=".png"):
 
     success, buffer = cv2.imencode(encode_format, img_array)
     if not success:
-        raise ValueError(f"Image encoding to {encode_format} failed")
+        raise ValueError(f"Nie udało się zenkodować obrazu do formatu {encode_format}")
     image_bytes = buffer.tobytes()
     return image_bytes
