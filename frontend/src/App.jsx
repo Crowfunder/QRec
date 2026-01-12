@@ -1,23 +1,36 @@
 import React from 'react';
 import { MantineProvider } from '@mantine/core';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+// 1. CSS Imports (Crucial for Mantine v7)
+import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
+import '@mantine/notifications/styles.css';
+
+// 2. Component Imports
 import EntryTerminal from './pages/EntryTerminal';
-import AdminLayout from './pages/admin/AdminLayout'; 
-import WorkersPage from './pages/admin/WorkersPage'; 
+import AdminLayout from './pages/admin/AdminLayout';
+import WorkersListPage from './pages/admin/WorkersListPage'; // The new list view
+import AddWorkerPage from './pages/admin/AddWorkerPage';     // The new create view
+import ReportsPage from './pages/admin/ReportsPage';         // The new placeholder
 
 function App() {
   return (
-    <MantineProvider withGlobalStyles withNormalizeCSS theme={{ colorScheme: 'dark' }}>
+    <MantineProvider defaultColorScheme="dark">
       <BrowserRouter>
         <Routes>
-            {/* Public/Terminal Route */}
+            {/* PUBLIC TERMINAL (Home) */}
             <Route path="/" element={<EntryTerminal />} />
             
-            {/* Admin Routes */}
+            {/* ADMIN PANEL */}
             <Route path="/admin" element={<AdminLayout />}>
-                {/* Redirect /admin to /admin/workers automatically */}
+                {/* Redirect /admin -> /admin/workers automatically */}
                 <Route index element={<Navigate to="/admin/workers" replace />} />
-                <Route path="workers" element={<WorkersPage />} />
+                
+                {/* Module Routes */}
+                <Route path="workers" element={<WorkersListPage />} />
+                <Route path="add-worker" element={<AddWorkerPage />} />
+                <Route path="reports" element={<ReportsPage />} />
             </Route>
         </Routes>
       </BrowserRouter>
