@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Flask: Run App",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flask",
+            "args": [
+                "--app",
+                "backend/app",
+                "run"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Flask: Profile App with cProfile",
+            "type": "python",
+            "request": "launch",
+            "program": "-m",
+            "args": [
+                "cProfile",
+                "-o",
+                "profile_output.prof",
+                "-m",
+                "flask",
+                "--app",
+                "backend/app",
+                "run"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}

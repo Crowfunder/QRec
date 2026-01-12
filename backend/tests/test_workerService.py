@@ -12,7 +12,7 @@ from datetime import datetime
 from backend.app import create_app, db
 from backend.components.workers import workerService
 from backend.database.models import Worker
-from backend.components.workers.workerService import newWorker
+from backend.components.workers.workerService import create_worker
 
 # Zakładam, że qrcodeService masz poprawnie zaimplementowany.
 # Jeśli tam też jest snake_case, upewnij się, że wywołujesz generate_secret a nie generateSecret.
@@ -76,7 +76,7 @@ def test_new_worker_service_adds_to_db(mock_create_embedding, app_context):
 
     with app_context.app_context():
         # POPRAWKA 3: Usunięto argument 'db', funkcja korzysta z globalnego db w kontekście
-        worker = newWorker(name, fake_image, expiration)
+        worker = create_worker(name, fake_image, expiration)
 
         assert worker.id is not None
         assert worker.name == name
@@ -107,7 +107,7 @@ def test_extend_worker_expiration_success(app_context):
         worker_id = worker.id
 
         # POPRAWKA 4: Usunięto argument 'db'
-        updated_worker = workerService.extendWorkerExpiration(worker_id, new_date)
+        updated_worker = workerService.extend_worker_expiration(worker_id, new_date)
 
         assert updated_worker.expiration_date == new_date
 
@@ -123,7 +123,7 @@ def test_extend_worker_expiration_not_found(app_context):
     with app_context.app_context():
         with pytest.raises(ValueError) as excinfo:
             # POPRAWKA 5: Usunięto argument 'db'
-            workerService.extendWorkerExpiration(non_existent_id, new_date)
+            workerService.extend_worker_expiration(non_existent_id, new_date)
         assert f"Worker with id {non_existent_id} not found" in str(excinfo.value)
 
 
@@ -145,7 +145,7 @@ def test_update_worker_name_success(app_context):
         worker_id = worker.id
 
         # POPRAWKA 6: Usunięto argument 'db'
-        updated_worker = workerService.updateWorkerName(worker_id, new_name)
+        updated_worker = workerService.update_worker_name(worker_id, new_name)
 
         assert updated_worker.name == new_name
 
@@ -161,7 +161,7 @@ def test_extend_worker_name_not_found(app_context):
     with app_context.app_context():
         with pytest.raises(ValueError) as excinfo:
             # POPRAWKA 7: Usunięto argument 'db'
-            workerService.updateWorkerName(non_existent_id, new_name)
+            workerService.update_worker_name(non_existent_id, new_name)
         assert f"Worker with id {non_existent_id} not found" in str(excinfo.value)
 
 
@@ -189,7 +189,7 @@ def test_update_worker_face_embedding_success(app_context):
             mock_embedding.return_value = mocked_embedding_result
 
             # POPRAWKA 9: Usunięto argument 'db'
-            updated_worker = workerService.updateWorkerFaceImage(worker_id, new_raw_image)
+            updated_worker = workerService.update_worker_face_image(worker_id, new_raw_image)
 
             mock_embedding.assert_called_once_with(new_raw_image)
 
@@ -207,5 +207,5 @@ def test_update_worker_face_embedding_not_found(app_context):
     with app_context.app_context():
         with pytest.raises(ValueError) as excinfo:
             # POPRAWKA 10: Usunięto argument 'db'
-            workerService.updateWorkerFaceImage(non_existent_id, new_raw_image)
+            workerService.update_worker_face_image(non_existent_id, new_raw_image)
         assert f"Worker with id {non_existent_id} not found" in str(excinfo.value)

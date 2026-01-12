@@ -30,14 +30,6 @@ class Worker(db.Model):
     face_embedding = db.Column(db.LargeBinary, nullable=False)
     expiration_date = db.Column(db.DateTime, nullable=False)
     secret = db.Column(db.String, nullable=False)
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "face_embedding": self.face_embedding,
-            "expiration_date": self.expiration_date.isoformat() if self.expiration_date else None,
-            "secret": self.secret
-        }
 
 
 @dataclass
@@ -50,14 +42,3 @@ class Entry(db.Model):
     message = db.Column(db.String, nullable=False)
     #face_image = db.Column(db.Blob, nullable=True)
     face_image = db.Column(db.LargeBinary, nullable=True)
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "date": self.date.isoformat() if self.date else None,
-            "worker_id": self.worker_id,
-            "code": self.code,
-            "message": self.message,
-            "face_image": self.face_image
-        }
-
-

@@ -10,7 +10,6 @@ class WorkerSchema(Schema):
 
     id = fields.Int(dump_only=True)
     name = fields.Str(required=True)
-    face_image = fields.Str(required=True)
     expiration_date = fields.DateTime(required=True)
 
     @post_load
@@ -28,4 +27,5 @@ class EntrySchema(Schema):
     date = fields.DateTime(dump_only=True)
     worker_id = fields.Int(required=True)
     code = fields.Int(required=True)
+    message = fields.Str(required=True)
     face_image = fields.Str(required=True)

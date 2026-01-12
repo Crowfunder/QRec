@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Raport Wejść</title>
+    <style>
+        @font-face {
+            font-family: 'Roboto';
+            src: url('{{ font_path }}');
+        }
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+        }
+        .meta-info {
+            background-color: #f4f4f4;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-size: 9pt;
+        }
+        .meta-info p {
+            margin: 2px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #004080; /* Ciemny niebieski */
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .status-valid {
+            color: green;
+            font-weight: bold;
+        }
+        .status-invalid {
+            color: red;
+            font-weight: bold;
+        }
+        .face-img {
+            width: 80px;
+            height: auto;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Raport Weryfikacji Pracowników</h1>
+        <p>Wygenerowano: {{ generation_date }}</p>
+    </div>
+
+    <div class="meta-info">
+        <strong>Parametry raportu:</strong>
+        <p><strong>Zakres dat:</strong>
+            {% if filters.date_from %}{{ filters.date_from }}{% else %}Początek{% endif %}
+            —
+            {% if filters.date_to %}{{ filters.date_to }}{% else %}Teraz{% endif %}
+        </p>
+        <p><strong>Filtrowanie pracownika:</strong>
+            {% if filters.worker_id %}ID: {{ filters.worker_id }}{% else %}Wszyscy{% endif %}
+        </p>
+        <p><strong>Filtry statusu:</strong>
+            {% if filters.show_valid and filters.show_invalid %}
+                Wszystkie wejścia
+            {% elif filters.show_valid %}
+                Tylko poprawne
+            {% elif filters.show_invalid %}
+                Tylko niepoprawne
+            {% else %}
+                Wszystkie wejścia
+            {% endif %}
+        </p>
+        <p><strong>Liczba wpisów:</strong> {{ count }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">ID</th>
+                <th style="width: 20%;">Data i Czas</th>
+                <th style="width: 20%;">Pracownik</th>
+                <th style="width: 35%;">Status / Komunikat</th>
+                <th style="width: 20%;">Zdjęcie</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.date }}</td>
+                <td>
+                    <strong>{{ item.worker_name }}</strong><br>
+                    <small>ID: {{ item.worker_id if item.worker_id else '-' }}</small>
+                </td>
+                <td>
+                    {% if item.code == 0 %}
+                        <span class="status-valid">POPRAWNE</span>
+                    {% else %}
+                        <span class="status-invalid">BŁĄD ({{ item.code }})</span>
+                    {% endif %}
+                    <br>
+                    <small>{{ item.message }}</small>
+                </td>
+                <td>
+                    {% if item.face_image_b64 %}
+                        <img src="data:image/jpeg;base64,{{ item.face_image_b64 }}" class="face-img">
+                    {% else %}
+                        <span style="color: #ccc;">Brak zdjęcia</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
