@@ -2,6 +2,7 @@ from flask import request, send_file, Response
 import cv2
 import numpy as np
 import hashlib
+from pyzbar import pyzbar
 
 from backend.components.utils.imageUtils import encode_image
 
@@ -35,6 +36,34 @@ def generate_qr_code(secret: str):
 def decode_qr_image(img) -> str:
     """
     Input an image loaded into numpy array and return decoded QR code data as string.
+    Uses pyzbar.
+
+    **Parameters**:
+    - `img` (ndarray): Decoded image in ndarray.
+
+    **Returns**:
+    - `str`: Decoded QR code
+    """
+    decoded_texts = pyzbar.decode(img)
+    if decoded_texts and len(decoded_texts)>0:
+        valid_codes = [code for code in decoded_texts if code]
+        count = len(valid_codes)
+
+        if count == 1:
+            return valid_codes[0].data.decode("utf-8")
+        elif count > 1:
+            raise MultipleCodesError(f"Wykryto {count} kodów QR. Wymagany jest dokładnie jeden.")
+        else:
+            raise NoCodeFoundError("Wykryto wzorzec QR, ale nie udało się go odczytać.")
+
+    raise NoCodeFoundError("Nie wykryto kodu QR.")
+
+
+@DeprecationWarning
+def decode_qr_image_legacy(img) -> str:
+    """
+    [DEPRECATED] Input an image loaded into numpy array and return decoded QR code data as string.
+    Uses cv2 detector.
 
     **Parameters**:
     - `img` (ndarray): Decoded image in ndarray.
