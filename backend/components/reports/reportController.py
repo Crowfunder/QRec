@@ -180,6 +180,8 @@ def generate_pdf_report():
         if date_to_str:
             try:
                 date_to = datetime.fromisoformat(date_to_str)
+                # Jeśli podano samą datę (format YYYY-MM-DD, bez godziny), ustawiamy czas na koniec dnia,
+                # aby uwzględnić wszystkie wpisy z tego dnia (domyślnie fromisoformat ustawia 00:00:00).
                 if len(date_to_str) == 10:
                     date_to = date_to.replace(hour=23, minute=59, second=59, microsecond=999999)
             except ValueError:
