@@ -5,7 +5,7 @@
 Handles the generation and decoding of QR codes for worker verification.
 
 
-## Key Components
+## Directory Structure
 
 #### `qrcodeService.py`
 - **QR Code Generation**: Creates unique QR codes for workers.

@@ -3,12 +3,12 @@
 
 The `components` folder contains modularized backend logic for the application. Each subfolder represents a distinct feature or service.
 
-## Subfolders
+## Directory Structure
 
 #### `camera_verification`
 Handles the verification of workers using QR codes and face recognition. 
 
-#### `entries`
+#### `reports`
 Manages logging of worker entries, including storing event details such as verification results and images.
 
 #### `workers`

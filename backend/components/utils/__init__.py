@@ -4,7 +4,7 @@
 
 General purpose utilities used in the whole project.
 
-## Components
+## Directory Structure
 
 #### `imageUtils.py`
 - Provides various utilities for working with images.

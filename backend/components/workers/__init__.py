@@ -6,7 +6,7 @@ The `workers` module manages all worker-related operations, including CRUD funct
 
 
 
-## Components
+## Directory Structure
 
 #### `workerController.py`
 - Defines API endpoints for worker-related operations.
