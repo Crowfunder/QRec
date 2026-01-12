@@ -12,22 +12,92 @@ bp = Blueprint('reports', __name__, url_prefix='/api/raport')
 
 @bp.route('', methods=['GET'])
 def generate_report():
-    '''
-        Retrieves entry report data by joining Entry records with Worker data.
+    """
+        Retrieves worker entry reports based on provided filters.
 
-        This function handles filtering by date range, specific worker, and entry validity status.
-        Results are sorted in descending order by date.
+        This endpoint allows filtering entries (Entry) by date, worker, and validation status (valid/invalid).
+        Returns data in JSON format (including Base64 encoded face image), which can be used to generate tables or PDF files.
 
         **Parameters**:
-        - `date_from` (datetime): Start date (inclusive). Defaults to None.
-        - `date_to` (datetime): End date (inclusive). Defaults to None.
-        - `worker_id` (int): Worker ID to filter by. Defaults to None.
-        - `show_valid` (bool): Whether to include valid entries (code 0). If selected together with show_invalid (or both are unselected), returns all types.
-        - `show_invalid` (bool): Whether to include invalid entries (code != 0). If selected together with show_valid (or both are unselected), returns all types.
+        - `date_from` (str): Start date of the range (format YYYY-MM-DD or ISO). Optional.
+        - `date_to` (str): End date of the range (format YYYY-MM-DD or ISO). If only date is provided, it covers the whole day (until 23:59:59). Optional.
+        - `pracownik_id` (int): Worker ID to filter by. Optional.
+        - `wejscia_niepoprawne` (bool): Flag - if present, includes invalid entries (error code != 0).
+        - `wejscia_poprawne` (bool): Flag - if present, includes valid entries (error code == 0).
 
         **Returns**:
-        - `List[Tuple[Entry, Optional[Worker]]]` - A list of tuples where the first element is the entry object (Entry) and the second is the worker object (Worker) or None if the entry has no assigned worker.
-    '''
+        - `JSON` - Object containing count, filters used, and the list of entry data.
+
+        ---
+        tags:
+          - Reports
+        parameters:
+          - name: date_from
+            in: query
+            type: string
+            required: false
+            description: Start date of the range (format YYYY-MM-DD or ISO).
+          - name: date_to
+            in: query
+            type: string
+            required: false
+            description: End date of the range (format YYYY-MM-DD or ISO). If only date is provided, covers the whole day (until 23:59:59).
+          - name: pracownik_id
+            in: query
+            type: integer
+            required: false
+            description: Worker ID to filter by.
+          - name: wejscia_niepoprawne
+            in: query
+            type: boolean
+            required: false
+            allowEmptyValue: true
+            description: Flag - if present, includes invalid entries (error code != 0).
+          - name: wejscia_poprawne
+            in: query
+            type: boolean
+            required: false
+            allowEmptyValue: true
+            description: Flag - if present, includes valid entries (error code == 0).
+        responses:
+          200:
+            description: Report successfully generated.
+            schema:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  description: Number of entries found.
+                filters:
+                  type: object
+                  description: Filters used in the query.
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      date:
+                        type: string
+                        format: date-time
+                      code:
+                        type: integer
+                        description: Response code (0 = success).
+                      message:
+                        type: string
+                      worker_id:
+                        type: integer
+                      worker_name:
+                        type: string
+                      face_image:
+                        type: string
+                        description: Base64 encoded face image (or null).
+          400:
+            description: Parameter validation error.
+          500:
+            description: Internal server error.
+    """
 
     try:
         date_from_str = request.args.get('date_from')
@@ -96,11 +166,66 @@ def generate_report():
         return jsonify({'error': str(e)}), 500
 
 
-@bp.route('/pdf', methods=['GET'])
+bp.route('/pdf', methods=['GET'])
 def generate_pdf_report():
     """
-    Generuje raport w formacie PDF na podstawie zadanych filtrów.
-    Pobiera dokładnie te same parametry co wersja JSON.
+    Generates a report in PDF format based on provided filters.
+
+    Retrieves exactly the same parameters as the JSON version.
+
+    **Parameters**:
+    - `date_from` (str): Start date of the range (format YYYY-MM-DD or ISO). Optional.
+    - `date_to` (str): End date of the range (format YYYY-MM-DD or ISO). Optional.
+    - `pracownik_id` (int): Worker ID to filter by. Optional.
+    - `wejscia_niepoprawne` (bool): Flag - if present, includes invalid entries.
+    - `wejscia_poprawne` (bool): Flag - if present, includes valid entries.
+
+    **Returns**:
+    - `application/pdf` - A downloadable PDF file.
+
+    ---
+    tags:
+      - Reports
+    parameters:
+      - name: date_from
+        in: query
+        type: string
+        required: false
+        description: Start date of the range (format YYYY-MM-DD or ISO).
+      - name: date_to
+        in: query
+        type: string
+        required: false
+        description: End date of the range (format YYYY-MM-DD or ISO).
+      - name: pracownik_id
+        in: query
+        type: integer
+        required: false
+        description: Worker ID to filter by.
+      - name: wejscia_niepoprawne
+        in: query
+        type: boolean
+        required: false
+        allowEmptyValue: true
+        description: Flag - if present, includes invalid entries.
+      - name: wejscia_poprawne
+        in: query
+        type: boolean
+        required: false
+        allowEmptyValue: true
+        description: Flag - if present, includes valid entries.
+    responses:
+      200:
+        description: PDF report generated successfully.
+        content:
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+      400:
+        description: Parameter validation error.
+      500:
+        description: Internal server error.
     """
     try:
         date_from_str = request.args.get('date_from')
@@ -180,7 +305,7 @@ def generate_pdf_report():
         # On windows, file paths to the font break
         # known issue, applying a monkeypatch
         # https://github.com/xhtml2pdf/xhtml2pdf/issues/623#issuecomment-1372719452
-        pisaFileObject.getNamedFile = lambda self: self.uri 
+        pisaFileObject.getNamedFile = lambda self: self.uri
         pisa_status = pisa.CreatePDF(
             io.BytesIO(html_content.encode('utf-8')),
             dest=pdf_output,

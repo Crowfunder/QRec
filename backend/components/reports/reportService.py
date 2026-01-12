@@ -9,25 +9,22 @@ def get_report_data(date_from: datetime = None,
                     worker_id: int = None,
                     show_valid: bool = False,
                     show_invalid: bool = False) -> List[Tuple[Entry, Optional[Worker]]]:
-    """
-    Pobiera dane do raportu wejść, łącząc wpisy z tabeli Entry z danymi pracowników.
+    '''
+        Retrieves entry report data by joining Entry records with Worker data.
 
-    Funkcja obsługuje filtrowanie po zakresie dat, konkretnym pracowniku oraz statusie
-    poprawności wejścia. Wyniki są sortowane malejąco po dacie.
+        This function handles filtering by date range, specific worker, and entry validity status.
+        Results are sorted in descending order by date.
 
-    Args:
-        date_from (datetime, optional): Data początkowa (włącznie). Domyślnie None.
-        date_to (datetime, optional): Data końcowa (włącznie). Domyślnie None.
-        worker_id (int, optional): ID pracownika, dla którego pobrać raport. Domyślnie None.
-        show_valid (bool, optional): Czy uwzględniać poprawne wejścia (kod 0).
-            Jeśli zaznaczone razem z show_invalid (lub oba odznaczone), zwraca wszystkie typy.
-        show_invalid (bool, optional): Czy uwzględniać niepoprawne wejścia (kod != 0).
-            Jeśli zaznaczone razem z show_valid (lub oba odznaczone), zwraca wszystkie typy.
+        **Parameters**:
+        - `date_from` (datetime): Start date (inclusive). Defaults to None.
+        - `date_to` (datetime): End date (inclusive). Defaults to None.
+        - `worker_id` (int): Worker ID to filter by. Defaults to None.
+        - `show_valid` (bool): Whether to include valid entries (code 0). If selected together with show_invalid (or both are unselected), returns all types.
+        - `show_invalid` (bool): Whether to include invalid entries (code != 0). If selected together with show_valid (or both are unselected), returns all types.
 
-    Returns:
-        List[Tuple[Entry, Optional[Worker]]]: Lista krotek, gdzie pierwszy element to obiekt wpisu (Entry),
-        a drugi to obiekt pracownika (Worker) lub None, jeśli wpis nie ma przypisanego pracownika.
-    """
+        **Returns**:
+        - `List[Tuple[Entry, Optional[Worker]]]` - A list of tuples where the first element is the entry object (Entry) and the second is the worker object (Worker) or None if the entry has no assigned worker.
+    '''
     query = db.session.query(Entry, Worker).outerjoin(Worker, Entry.worker_id == Worker.id)
 
     if date_from:
