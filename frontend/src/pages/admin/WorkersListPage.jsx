@@ -18,9 +18,6 @@ export default function WorkersListPage() {
 const loadWorkers = async () => {
     try {
         const data = await workerApi.getAll();
-        
-        // 👇 DEBUGGING: Check your browser console to see what appears here
-        console.log("DATA RECEIVED FROM BACKEND:", data);
 
         // Handle different data structures automatically:
         if (Array.isArray(data)) {

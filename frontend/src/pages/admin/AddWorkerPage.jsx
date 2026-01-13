@@ -15,17 +15,23 @@ export default function AddWorkerPage() {
         expiration_date: new Date(),
         file: null
     });
-
-    // Notification State
     const [notification, setNotification] = useState(null);
-
-    // 👇 NEW: State for the generated Pass Image
     const [passImage, setPassImage] = useState(null);
     const [passModalOpen, setPassModalOpen] = useState(false);
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.file) {
             setNotification({ color: 'red', message: 'Name and Photo are required!' });
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day for fair comparison
+        const selectedDate = new Date(formData.expiration_date);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) {
+            setNotification({ color: 'red', message: 'Expiration date cannot be in the past!' });
             return;
         }
 
@@ -42,7 +48,7 @@ export default function AddWorkerPage() {
             // 3. Convert Blob to URL for display
             const imageUrl = URL.createObjectURL(imageBlob);
             setPassImage(imageUrl);
-            setPassModalOpen(true); // Open the modal
+            setPassModalOpen(true); 
 
         } catch (err) {
             setNotification({ color: 'red', message: err.message });
@@ -54,7 +60,7 @@ export default function AddWorkerPage() {
     // Clean up when closing modal
     const handleCloseModal = () => {
         setPassModalOpen(false);
-        navigate('/admin/workers'); // Redirect to list
+        navigate('/admin/workers');
     };
 
     // Print helper
@@ -113,7 +119,6 @@ export default function AddWorkerPage() {
                 </Button>
             </Paper>
 
-            {/* 👇 NEW: Modal to show the generated pass */}
             <Modal 
                 opened={passModalOpen} 
                 onClose={handleCloseModal} 
