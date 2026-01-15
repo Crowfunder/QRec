@@ -1,6 +1,8 @@
 import base64
 import io
 import os
+from collections import Counter
+
 from flask import Blueprint, request, jsonify, render_template, make_response, send_file, current_app
 from xhtml2pdf import pisa
 from xhtml2pdf.files import pisaFileObject
@@ -133,7 +135,31 @@ def generate_report():
         )
 
         report_data = []
+        # Inicjalizacja liczników do statystyk
+        stats_total = 0
+        stats_valid = 0
+        stats_invalid = 0
+
+        daily_counter = Counter()  # Zlicza wejścia per dzień
+        cheater_counter = Counter()  # Zlicza niepoprawne wejścia per pracownik
+        top_worker_counter = Counter()  # Zlicza poprawne wejścia per pracownik
+
         for entry, worker in results:
+            stats_total += 1
+            worker_name = worker.name if worker else f'Nieznany (ID: {entry.worker_id})'
+            day_str = entry.date.strftime('%Y-%m-%d')
+
+            # 1. Statystyki dzienne
+            daily_counter[day_str] += 1
+
+            # 2. Statystyki poprawności
+            if entry.code == 0:
+                stats_valid += 1
+                top_worker_counter[worker_name] += 1
+            else:
+                stats_invalid += 1
+                cheater_counter[worker_name] += 1
+
             # Kodowanie obrazu do Base64
             encoded_image = None
             if entry.face_image:
@@ -149,6 +175,35 @@ def generate_report():
                 'face_image': encoded_image
             })
 
+        # --- Obliczanie finalnych statystyk ---
+
+        # Znajdź najczęściej oszukującego (zwraca listę krotek [('Name', count)] lub pusta lista)
+        most_cheating = cheater_counter.most_common(1)
+        most_cheating_data = {
+            'name': most_cheating[0][0],
+            'count': most_cheating[0][1]
+        } if most_cheating else None
+
+        # Znajdź najaktywniejszego poprawnego pracownika
+        most_active = top_worker_counter.most_common(1)
+        most_active_data = {
+            'name': most_active[0][0],
+            'count': most_active[0][1]
+        } if most_active else None
+
+        # Posortuj statystyki dzienne chronologicznie
+        sorted_daily_traffic = dict(sorted(daily_counter.items()))
+
+        report_statistics = {
+            'total_entries': stats_total,
+            'valid_entries': stats_valid,
+            'invalid_entries': stats_invalid,
+            'success_rate_percent': round((stats_valid / stats_total * 100), 2) if stats_total > 0 else 0,
+            'most_invalid_attempts_worker': most_cheating_data,  # Najczęściej "oszukujący"
+            'most_valid_entries_worker': most_active_data,  # Najczęstszy pracownik
+            'daily_traffic': sorted_daily_traffic  # Ilość wejść każdego dnia
+        }
+
         return jsonify({
             'count': len(report_data),
             'filters': {
@@ -158,13 +213,15 @@ def generate_report():
                 'show_valid': show_valid,
                 'show_invalid': show_invalid
             },
+            'statistics': report_statistics,
             'data': report_data
         })
 
     except Exception as e:
         print(f"Błąd raportu: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
-
 
 @bp.route('/pdf', methods=['GET'])
 def generate_pdf_report():
