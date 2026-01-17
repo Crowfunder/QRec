@@ -1,17 +1,13 @@
 const API_BASE = '/api/workers';
+const REPORT_BASE = '/api/raport';
 
-/**
- * Helper to Convert JS Dates to backend-friendly ISO strings
- */
 const formatDate = (date) => {
     if (!date) return '';
     
-    // If it's already a Date object, use it
     if (date instanceof Date) {
         return date.toISOString();
     }
     
-    // If it's a string or something else, force it into a Date object first
     return new Date(date).toISOString();
 };
 
@@ -28,11 +24,11 @@ export const workerApi = {
         const formData = new FormData();
         formData.append('name', name);
         formData.append('expiration_date', formatDate(expirationDate));
-        formData.append('file', file); // Required by backend
+        formData.append('file', file); 
 
         const res = await fetch(API_BASE, {
             method: 'POST',
-            body: formData, // No 'Content-Type' header needed; browser adds it automatically
+            body: formData, 
         });
         
         if (!res.ok) {
@@ -70,7 +66,46 @@ export const workerApi = {
     getEntryPass: async (id) => {
         const res = await fetch(`${API_BASE}/entrypass/${id}`);
         if (!res.ok) throw new Error('Failed to fetch entry pass');
-        // Return as a Blob (binary image data)
+        return res.blob();
+    },
+
+    getReportData: async (filters) => {
+        const params = new URLSearchParams();
+
+        if (filters.workerId && filters.workerId !== 'all') {
+            params.append('pracownik_id', filters.workerId);
+        }
+        if (filters.dateRange && filters.dateRange[0]) {
+            params.append('date_from', formatDate(filters.dateRange[0]));
+        }
+        if (filters.dateRange && filters.dateRange[1]) {
+            params.append('date_to', formatDate(filters.dateRange[1]));
+        }
+        if (filters.includeValid) params.append('wejscia_poprawne', 'true');
+        if (filters.includeInvalid) params.append('wejscia_niepoprawne', 'true');
+
+        const res = await fetch(`${REPORT_BASE}?${params.toString()}`);
+        if (!res.ok) throw new Error('Błąd pobierania raportu');
+        return res.json();
+    },
+
+    downloadReportPdf: async (filters) => {
+        const params = new URLSearchParams();
+
+        if (filters.workerId && filters.workerId !== 'all') {
+            params.append('pracownik_id', filters.workerId);
+        }
+        if (filters.dateRange && filters.dateRange[0]) {
+            params.append('date_from', formatDate(filters.dateRange[0]));
+        }
+        if (filters.dateRange && filters.dateRange[1]) {
+            params.append('date_to', formatDate(filters.dateRange[1]));
+        }
+        if (filters.includeValid) params.append('wejscia_poprawne', 'true');
+        if (filters.includeInvalid) params.append('wejscia_niepoprawne', 'true');
+
+        const res = await fetch(`${REPORT_BASE}/pdf?${params.toString()}`);
+        if (!res.ok) throw new Error('Błąd generowania PDF');
         return res.blob();
     }
 };
