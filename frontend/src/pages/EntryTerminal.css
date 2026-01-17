@@ -1,21 +1,19 @@
-/* Container to hold the webcam and overlays */
 .terminal-container {
   position: relative;
   width: 100vw;
   height: 100vh;
   background-color: #000;
   overflow: hidden;
-  font-family: 'Courier New', Courier, monospace; /* Security cam vibe */
+  font-family: 'Courier New', Courier, monospace;
 }
 
-/* The actual webcam video */
 .webcam-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scaleX(-1); 
 }
 
-/* Scanline effect overlay */
 .scanlines {
   position: absolute;
   top: 0;
@@ -30,16 +28,14 @@
     rgba(0, 0, 0, 0.2)
   );
   background-size: 100% 4px;
-  pointer-events: none; /* Let clicks pass through */
   z-index: 10;
 }
 
-/* Top Header Bar */
 .header-bar {
   position: absolute;
-  top: 20px;
-  left: 20px;
-  right: 20px;
+  top: 50px;
+  left: 50px;
+  right: 50px;
   display: flex;
   justify-content: space-between;
   z-index: 20;
@@ -72,27 +68,25 @@
   font-weight: bold;
 }
 
-/* The scanning target box (The grey square in your mockups) */
 .scan-zone {
   position: absolute;
   top: 20%;
-  left: 10%;
-  width: 250px;
-  height: 250px;
+  left: 50px;
+  width: 500px;
+  height: 500px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.2);
   z-index: 15;
 }
 
-/* The Status Message Box (Bottom Left) */
 .status-box {
   position: absolute;
-  bottom: 100px;
+  bottom: 50px;
   left: 50px;
   background-color: black;
   color: white;
   padding: 30px;
-  width: 400px;
+  width: 500px;
   font-size: 2rem;
   line-height: 1.2;
   z-index: 20;
