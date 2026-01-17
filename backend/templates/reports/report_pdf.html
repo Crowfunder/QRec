@@ -4,139 +4,313 @@
     <meta charset="UTF-8">
     <title>Raport Wejść</title>
     <style>
+        /* Definicja czcionki */
         @font-face {
             font-family: 'Roboto';
             src: url('{{ font_path }}');
         }
+
+        /* Konfiguracja strony i ramek (nagłówek/stopka) dla xhtml2pdf */
         @page {
             size: A4;
-            margin: 1cm;
+            margin: 2.5cm 2cm 2.5cm 2cm; /* Marginesy zwiększone góra/dół dla nagłówka/stopki */
+
+            /* Ramka nagłówka - pojawia się na każdej stronie */
+            @frame header_frame {
+                -pdf-frame-content: header_content; /* ID diva z treścią */
+                top: 1cm;
+                left: 2cm;
+                width: 17cm;
+                height: 1cm;
+            }
+
+            /* Ramka stopki - pojawia się na każdej stronie */
+            @frame footer_frame {
+                -pdf-frame-content: footer_content; /* ID diva z treścią */
+                bottom: 1cm;
+                left: 2cm;
+                width: 17cm;
+                height: 1cm;
+            }
         }
+
         body {
             font-family: 'Roboto', sans-serif;
-            font-size: 10pt;
+            font-size: 12px;
             color: #333;
         }
-        .header {
+
+        /* Ukrycie kontenerów nagłówka/stopki w normalnym przepływie dokumentu */
+        #header_content, #footer_content {
+            display: none;
+        }
+
+        /* Stylizacja treści nagłówka i stopki */
+        .header-text {
+            text-align: center;
+            color: #888;
+            font-size: 10px;
+        }
+
+        .footer-text {
+            text-align: right;
+            color: #333;
+            font-size: 10px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .meta-info {
             text-align: center;
             margin-bottom: 20px;
-            border-bottom: 2px solid #444;
-            padding-bottom: 10px;
+            color: #666;
+            font-size: 10px;
         }
-        .meta-info {
-            background-color: #f4f4f4;
+
+        .filters-box {
+            background-color: #f8f9fa;
             padding: 10px;
+            border: 1px solid #e9ecef;
             margin-bottom: 20px;
-            border-radius: 5px;
-            font-size: 9pt;
+            border-radius: 4px;
         }
-        .meta-info p {
-            margin: 2px 0;
-        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-bottom: 20px;
         }
+
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
-            vertical-align: top;
+            vertical-align: middle;
         }
+
         th {
-            background-color: #004080; /* Ciemny niebieski */
-            color: white;
+            background-color: #f2f2f2;
             font-weight: bold;
+            color: #2c3e50;
         }
+
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        .status-valid {
+
+        .status-ok {
             color: green;
             font-weight: bold;
         }
-        .status-invalid {
+
+        .status-error {
             color: red;
             font-weight: bold;
         }
+
         .face-img {
-            width: 80px;
-            height: auto;
+            max-width: 80px;
+            max-height: 80px;
             border-radius: 4px;
+        }
+
+        /* Sekcja Statystyk */
+        .stats-section {
+            margin-top: 40px;
+            /* page-break-inside: avoid; - xhtml2pdf słabo to wspiera, lepiej użyć -pdf-keep-with-next jeśli to możliwe,
+               ale zwykła tabela powinna się dobrze przenieść */
+            border-top: 2px solid #2c3e50;
+            padding-top: 20px;
+        }
+
+        .stats-grid {
+            width: 100%;
+            margin-bottom: 20px;
+            border: none;
+        }
+
+        .stats-grid td {
+            border: none;
+            padding: 5px;
+            background-color: transparent;
+            width: 25%;
+        }
+
+        .stat-box {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .workers-summary {
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        .workers-summary td {
+            width: 50%;
+            vertical-align: top;
+            padding: 15px;
+            border: 1px solid #ddd;
+        }
+
+        .highlight-name {
+            font-weight: bold;
+            color: #2c3e50;
         }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>Raport Weryfikacji Pracowników</h1>
-        <p>Wygenerowano: {{ generation_date }}</p>
+    <div id="header_content">
+        <div class="header-text">Raport Systemu Weryfikacji</div>
     </div>
+
+    <div id="footer_content">
+        <div class="footer-text">
+            Strona <pdf:pagenumber> z <pdf:pagecount>
+        </div>
+    </div>
+
+    <h1>Raport Weryfikacji Pracowników</h1>
 
     <div class="meta-info">
-        <strong>Parametry raportu:</strong>
-        <p><strong>Zakres dat:</strong>
-            {% if filters.date_from %}{{ filters.date_from }}{% else %}Początek{% endif %}
-            —
-            {% if filters.date_to %}{{ filters.date_to }}{% else %}Teraz{% endif %}
-        </p>
-        <p><strong>Filtrowanie pracownika:</strong>
-            {% if filters.worker_id %}ID: {{ filters.worker_id }}{% else %}Wszyscy{% endif %}
-        </p>
-        <p><strong>Filtry statusu:</strong>
-            {% if filters.show_valid and filters.show_invalid %}
-                Wszystkie wejścia
-            {% elif filters.show_valid %}
-                Tylko poprawne
-            {% elif filters.show_invalid %}
-                Tylko niepoprawne
-            {% else %}
-                Wszystkie wejścia
-            {% endif %}
-        </p>
-        <p><strong>Liczba wpisów:</strong> {{ count }}</p>
+        Wygenerowano: {{ generation_date }}
     </div>
+
+    <div class="filters-box">
+        <strong>Zastosowane filtry:</strong><br>
+        Data od: {{ filters.date_from if filters.date_from else 'Brak' }}<br>
+        Data do: {{ filters.date_to if filters.date_to else 'Brak' }}<br>
+        Pracownik ID: {{ filters.worker_id if filters.worker_id else 'Wszyscy' }}<br>
+        Typ wpisów:
+        {% if filters.show_valid and filters.show_invalid %}
+            Wszystkie
+        {% elif filters.show_valid %}
+            Tylko poprawne
+        {% elif filters.show_invalid %}
+            Tylko błędne
+        {% else %}
+            Wszystkie
+        {% endif %}
+    </div>
+
+    <h3>Lista Zdarzeń ({{ count }})</h3>
 
     <table>
         <thead>
             <tr>
-                <th style="width: 5%;">ID</th>
-                <th style="width: 20%;">Data i Czas</th>
+                <th style="width: 15%;">Data</th>
                 <th style="width: 20%;">Pracownik</th>
-                <th style="width: 35%;">Status / Komunikat</th>
+                <th style="width: 10%;">Kod</th>
+                <th style="width: 35%;">Komunikat</th>
                 <th style="width: 20%;">Zdjęcie</th>
             </tr>
         </thead>
         <tbody>
             {% for item in data %}
             <tr>
-                <td>{{ item.id }}</td>
                 <td>{{ item.date }}</td>
                 <td>
                     <strong>{{ item.worker_name }}</strong><br>
-                    <small>ID: {{ item.worker_id if item.worker_id else '-' }}</small>
+                    <span style="font-size: 10px; color: #888;">ID: {{ item.worker_id }}</span>
                 </td>
-                <td>
-                    {% if item.code == 0 %}
-                        <span class="status-valid">POPRAWNE</span>
-                    {% else %}
-                        <span class="status-invalid">BŁĄD ({{ item.code }})</span>
-                    {% endif %}
-                    <br>
-                    <small>{{ item.message }}</small>
+                <td class="{{ 'status-ok' if item.code == 0 else 'status-error' }}">
+                    {{ item.code }}
                 </td>
-                <td>
+                <td>{{ item.message }}</td>
+                <td style="text-align: center;">
                     {% if item.face_image_b64 %}
-                        <img src="data:image/jpeg;base64,{{ item.face_image_b64 }}" class="face-img">
+                        <img src="data:image/jpeg;base64,{{ item.face_image_b64 }}" class="face-img" alt="Foto">
                     {% else %}
-                        <span style="color: #ccc;">Brak zdjęcia</span>
+                        <span style="color: #ccc;">-</span>
                     {% endif %}
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    {% if statistics %}
+    <div class="stats-section">
+        <h3>Podsumowanie Statystyczne</h3>
+
+        <table class="stats-grid">
+            <tr>
+                <td>
+                    <div class="stat-box">
+                        <span class="stat-number">{{ statistics.total_entries }}</span>
+                        <span class="stat-label">Wszystkich wpisów</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-box">
+                        <span class="stat-number" style="color: green;">{{ statistics.valid_entries }}</span>
+                        <span class="stat-label">Poprawne</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-box">
+                        <span class="stat-number" style="color: red;">{{ statistics.invalid_entries }}</span>
+                        <span class="stat-label">Błędne</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-box">
+                        <span class="stat-number">{{ statistics.success_rate_percent }}%</span>
+                        <span class="stat-label">Skuteczność</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <table class="workers-summary">
+            <tr>
+                <td>
+                    <strong>Najaktywniejszy pracownik</strong><br>
+                    <span style="font-size: 10px; color: #666;">Najwięcej poprawnych wejść</span>
+                    <br><br>
+                    {% if statistics.most_valid_entries_worker %}
+                        <span class="highlight-name">{{ statistics.most_valid_entries_worker.name }}</span><br>
+                        Liczba wejść: {{ statistics.most_valid_entries_worker.count }}
+                    {% else %}
+                        Brak danych
+                    {% endif %}
+                </td>
+                <td>
+                    <strong>Najwięcej błędów</strong><br>
+                    <span style="font-size: 10px; color: #666;">Najwięcej nieudanych prób</span>
+                    <br><br>
+                    {% if statistics.most_invalid_attempts_worker %}
+                        <span class="highlight-name" style="color: #c0392b;">{{ statistics.most_invalid_attempts_worker.name }}</span><br>
+                        Liczba błędów: {{ statistics.most_invalid_attempts_worker.count }}
+                    {% else %}
+                        Brak błędów
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
 
 </body>
 </html>
