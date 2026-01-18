@@ -188,7 +188,7 @@ def generate_report():
             json_data.append({
                 **item,
                 'date': item['date'].isoformat(),
-                'face_image': "encoded_image", # obraz base64 # @TODO - zmioana str na base64 usunąć ""
+                'face_image': encoded_image, # obraz base64 # @TODO - zmioana str na base64 usunąć ""
                 'face_image_bytes': None  # Nie wysyłamy bajtów w JSON
             })
 
