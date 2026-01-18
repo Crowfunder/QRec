@@ -14,9 +14,9 @@ def parse_image(file_bytes):
     '''
     file_bytes = np.frombuffer(file_bytes, np.uint8)
     image_bgr = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-    img = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-    if img is None:
+    if image_bgr is None:
         raise ValueError("Nie udało się przetworzyć pliku jako obrazu.")
+    img = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
     return img
 
 
