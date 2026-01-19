@@ -77,6 +77,12 @@ def create_app():
     from backend.components.camera_verification.verificationController import bp as bp_verification
     app.register_blueprint(bp_verification)
 
+    # Health check endpoint
+    @app.route('/health')
+    def health_check():
+        return {"status": "ok", "service": "camera-verification-api"}, 200
+
+
     from backend.components.workers.workerController import bp as bp_workers
     app.register_blueprint(bp_workers)
 
