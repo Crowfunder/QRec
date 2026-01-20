@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # -------------------------
+  # Run pytest (PRs + main)
+  # -------------------------
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/pyproject.toml
+
+      - run: sudo apt update
+      - run: sudo apt install -y libcairo2-dev pkg-config python3-dev zbar-tools
+
+      - run: pip install backend/ --verbose
+
+      - run: pytest
