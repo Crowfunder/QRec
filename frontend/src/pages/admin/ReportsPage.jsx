@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
     Paper, Group, Select, Button, Checkbox, Table, Text, 
     Card, Badge, Avatar, LoadingOverlay, ScrollArea, Box, 
-    Modal, ActionIcon, Tooltip, Center 
+    Modal, Tooltip 
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { 
-    IconFileDownload, IconSearch, IconZoomIn, IconZoomOut, IconRotate 
+    IconFileDownload, IconSearch, IconZoomIn, IconZoomOut, IconRotate, IconJson
 } from '@tabler/icons-react';
 import { workerApi } from '../../services/workerApi';
 
@@ -37,6 +37,10 @@ export default function ReportsPage() {
     fetchWorkers();
   }, []);
 
+  useEffect(() => {
+        handleGenerate();
+    }, []);
+
   const handleGenerate = async () => {
     setLoading(true);
     try {
@@ -47,6 +51,29 @@ export default function ReportsPage() {
     } finally {
         setLoading(false);
     }
+  };
+
+  const handleDownloadJson = () => {
+    if (!reportData) return;
+
+    // 1. Konwersja obiektu danych na tekst JSON (z wcięciami dla czytelności)
+    const jsonString = JSON.stringify(reportData, null, 2);
+    
+    // 2. Tworzenie Bloba (wirtualnego pliku)
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    // 3. Pobieranie pliku (technika "niewidzialnego linku")
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Raport_Dane_${new Date().toISOString().slice(0,10)}.json`;
+    
+    document.body.appendChild(link);
+    link.click();
+    
+    // 4. Sprzątanie
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleDownloadPdf = async () => {
@@ -85,7 +112,6 @@ export default function ReportsPage() {
     <Box>
       <Text size="xl" fw={700} mb="lg">Report Generator</Text>
 
-      {/* FILTERS SECTION */}
       <Paper withBorder p="md" radius="md" mb="lg">
         <Group align="flex-end">
             <Select
@@ -115,6 +141,7 @@ export default function ReportsPage() {
             </Group>
             <Group>
                 <Button leftSection={<IconSearch size={16}/>} onClick={handleGenerate} loading={loading}>Generate Preview</Button>
+                <Button leftSection={<IconJson size={16}/>} variant="default" onClick={handleDownloadJson} disabled={!reportData}>Download JSON</Button>
                 <Button leftSection={<IconFileDownload size={16}/>} variant="outline" color="red" onClick={handleDownloadPdf} loading={loading} disabled={!reportData}>Download PDF</Button>
             </Group>
         </Group>

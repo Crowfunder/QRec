@@ -24,7 +24,7 @@ export default function AdminLayout() {
         <Group h="100%" px="md">
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
           <IconShieldLock size={30} color={theme.colors.blue[6]} />
-          <Text fw={700} size="lg">Admin Panel</Text>
+          <Text fw={700} size="lg">QREC Admin Panel</Text>
         </Group>
       </AppShell.Header>
 

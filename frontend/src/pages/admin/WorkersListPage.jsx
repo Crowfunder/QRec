@@ -5,26 +5,24 @@ import { IconEdit, IconUpload, IconBan } from '@tabler/icons-react';
 import { workerApi } from '../../services/workerApi';
 
 export default function WorkersListPage() {
-  const [workers, setWorkers] = useState([]);
-  const [opened, setOpened] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  
-  // Edit Form State
-  const [formData, setFormData] = useState({ name: '', expiration_date: new Date(), file: null });
+const [workers, setWorkers] = useState([]);
+const [opened, setOpened] = useState(false);
+const [loading, setLoading] = useState(false);
+const [editingId, setEditingId] = useState(null);
+const [formData, setFormData] = useState({ 
+    name: '', 
+    expiration_date: new Date(), 
+    file: null 
+  });
 
   useEffect(() => { loadWorkers(); }, []);
 
 const loadWorkers = async () => {
     try {
         const data = await workerApi.getAll();
-
-        // Handle different data structures automatically:
         if (Array.isArray(data)) {
-            // Case 1: Backend returns [ {id:1}, {id:2} ]
             setWorkers(data);
         } else if (data && Array.isArray(data.workers)) {
-            // Case 2: Backend returns { workers: [ {id:1} ] }
             setWorkers(data.workers);
         } else {
             console.error("Unknown data format. Expected an array.", data);
@@ -36,7 +34,6 @@ const loadWorkers = async () => {
     }
   };
 
-  // Open Edit Modal
   const handleEdit = (worker) => {
     setEditingId(worker.id);
     setFormData({
@@ -47,7 +44,6 @@ const loadWorkers = async () => {
     setOpened(true);
   };
 
-  // Submit Changes
   const handleUpdate = async () => {
     setLoading(true);
     try {
@@ -61,7 +57,6 @@ const loadWorkers = async () => {
     }
   };
 
-  // Invalidate Pass
   const handleInvalidate = async (id) => {
     if(!window.confirm("Are you sure you want to INVALIDATE this pass immediately?")) return;
     try {
@@ -118,7 +113,6 @@ const loadWorkers = async () => {
         </Table>
       </Card>
 
-      {/* EDIT MODAL */}
       <Modal opened={opened} onClose={() => setOpened(false)} title="Edit Worker Details">
         <TextInput
             label="Full Name"

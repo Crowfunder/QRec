@@ -4,6 +4,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { IconUpload, IconCheck, IconX, IconPrinter, IconDownload } from '@tabler/icons-react';
 import { workerApi } from '../../services/workerApi';
 import { useNavigate } from 'react-router-dom';
+import printJS from 'print-js';
 
 export default function AddWorkerPage() {
     const navigate = useNavigate();
@@ -59,8 +60,14 @@ export default function AddWorkerPage() {
     };
 
     const handlePrint = () => {
-        const printWindow = window.open(passImage);
-        printWindow.print();
+        if (!passImage) return;
+
+        printJS({
+            printable: passImage,
+            type: 'image', 
+            header: `QR Code for worker\n${formData.name}`,
+            imageStyle: 'width:100%; margin-bottom:20px;'
+        });
     };
 
     const handleDownload = () => {
