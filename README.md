@@ -1,6 +1,6 @@
-# 🔴QREC
-## About
-A comprehensive access control system for a large industrial facility to enhance security and prevent abuses associated with traditional magnetic access cards; it integrates QR-code scanning and automated facial recognition to reliably verify employee identity upon entry, logs all access attempts with detailed metadata, and supports management of employee permissions and authorized personnel lists, thereby improving accuracy in attendance tracking and generating reports on system effectiveness and identified security violations.
+# 🔴QREC - _ˈkurɛk_
+A comprehensive access control system for a large industrial facility to enhance security and prevent abuses associated with traditional magnetic access cards.
+It integrates QR-code scanning and automated facial recognition to reliably verify employee identity upon entry, logs all access attempts with detailed metadata, and supports management of employee permissions and authorized personnel lists.
 
 ## Documentation
 [Link to detailed documentation](https://crowfunder.github.io/QRec)
