@@ -7,13 +7,14 @@ from backend.components.utils.imageUtils import parse_image
 from backend.components.workers.workerService import (
     create_worker, extend_worker_expiration, update_worker_name, update_worker_face_image, get_all_workers, get_worker_by_id, generate_worker_entry_pass
 )
+
 bp = Blueprint('bp_workers', __name__)
 
 @bp.route('/api/workers', defaults={'worker_id': None}, methods=['GET'])
 @bp.route('/api/workers/<worker_id>', methods=['GET'])
 def get_workers(worker_id):
     """
-    [GET] Retrieves workers from the database.
+    Retrieves workers from the database.
 
     **Parameters**:
     - `worker_id` (int|None): The ID of the worker to retrieve. If `None`, retrieves all workers.
@@ -23,6 +24,24 @@ def get_workers(worker_id):
       - If `worker_id` is provided and the worker exists, returns the serialized worker and status code 200.
       - If `worker_id` is not provided, returns all workers and status code 200.
       - If the worker is not found, returns a 404 status code.
+
+    ---
+    tags:
+      - Workers
+    parameters:
+      - name: worker_id
+        in: path
+        type: integer
+        required: false
+        description: ID of the worker. If omitted, returns all workers.
+    responses:
+      200:
+        description: Worker(s) retrieved successfully.
+        schema:
+          type: object
+          description: Returns a single Worker object OR a list of Worker objects depending on the route used.
+      404:
+        description: Worker not found (only applicable when worker_id is provided).
     """
     if worker_id:
         worker = get_worker_by_id(worker_id)
@@ -34,12 +53,12 @@ def get_workers(worker_id):
         serialized = WorkerSchema(many=True).dump(worker)
 
     return serialized, 200
-    
+
 
 @bp.route('/api/workers', methods=['POST'])
 def create_worker_endpoint():
     """
-    [POST] Creates a new worker in the database.
+    Creates a new worker in the database.
 
     **Form Body**:
     - `name` (str): The name of the worker.
@@ -48,6 +67,44 @@ def create_worker_endpoint():
 
     **Returns**:
     - `tuple`: A tuple containing the serialized worker and the HTTP status code 200.
+
+    ---
+    tags:
+      - Workers
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: name
+        in: formData
+        type: string
+        required: true
+        description: The name of the worker.
+      - name: expiration_date
+        in: formData
+        type: string
+        format: date-time
+        required: true
+        description: Expiration date in ISO format (YYYY-MM-DDTHH:MM:SS).
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: The image file of the worker's face.
+    responses:
+      200:
+        description: Worker successfully created.
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            expiration_date:
+              type: string
+              format: date-time
+      400:
+        description: Missing worker data.
     """
     name = request.form.get('name')
     expiration_date = request.form.get('expiration_date')
@@ -67,12 +124,12 @@ def create_worker_endpoint():
 @bp.route('/api/workers/<worker_id>', methods=['PUT'])
 def update_worker(worker_id):
     """
-    [PUT] Updates an existing worker in the database.
+    Updates an existing worker in the database.
 
     **Parameters**:
     - `worker_id` (int): The ID of the worker to update.
 
-    **Request Body**:
+    **Request Body** (multipart/form-data):
     - `name` (str|optional): The new name for the worker.
     - `expiration_date` (str|optional): The new expiration date in ISO format.
     - `file` (FileStorage|optional): The new image file of the worker's face.
@@ -80,6 +137,39 @@ def update_worker(worker_id):
     **Returns**:
     - `tuple`: A tuple containing the serialized updated worker and the HTTP status code 200.
       - If the worker is not found, returns a 404 status code.
+
+    ---
+    tags:
+      - Workers
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: worker_id
+        in: path
+        type: integer
+        required: true
+        description: The ID of the worker to update.
+      - name: name
+        in: formData
+        type: string
+        required: false
+        description: New name for the worker.
+      - name: expiration_date
+        in: formData
+        type: string
+        format: date-time
+        required: false
+        description: New expiration date (ISO format).
+      - name: file
+        in: formData
+        type: file
+        required: false
+        description: New face image file.
+    responses:
+      200:
+        description: Worker updated successfully.
+      404:
+        description: Worker not found.
     """
     worker = get_worker_by_id(worker_id)
     if not worker:
@@ -101,17 +191,35 @@ def update_worker(worker_id):
 
     return WorkerSchema(many=False).dump(worker), 200
 
+
 @bp.route('/api/workers/invalidate/<worker_id>', methods=['PUT'])
 def invalidate_worker(worker_id):
     """
-    [PUT] Invalidate an existing worker entry permit in the database.
+    Invalidate an existing worker entry permit in the database.
+
+    Sets the worker's expiration date to the current time, effectively blocking entry.
 
     **Parameters**:
     - `worker_id` (int): The ID of the worker to update.
 
     **Returns**:
     - `tuple`: A tuple containing the serialized updated worker and the HTTP status code 200.
-      - If the worker is not found, returns a 404 status code.
+    - If the worker is not found, returns a 404 status code.
+
+    ---
+    tags:
+      - Workers
+    parameters:
+      - name: worker_id
+        in: path
+        type: integer
+        required: true
+        description: The ID of the worker to invalidate.
+    responses:
+      200:
+        description: Worker permit invalidated successfully.
+      404:
+        description: Worker not found.
     """
     worker = get_worker_by_id(worker_id)
     if not worker:
@@ -126,14 +234,35 @@ def invalidate_worker(worker_id):
 @bp.route('/api/workers/entrypass/<worker_id>', methods=['GET'])
 def get_worker_entry_pass(worker_id):
     """
-    [GET] Return the worker entry pass for printing.
+    Return the worker entry pass for printing.
+
+    Generates a PNG image containing the worker's details and QR code.
 
     **Parameters**:
     - `worker_id` (int): The ID of the worker's pass.
 
     **Returns**:
     - `bytes`: Entry pass image encoded as png.
-      - If the worker is not found, returns a 404 status code.
+    - If the worker is not found, returns a 404 status code.
+
+    ---
+    tags:
+      - Workers
+    produces:
+      - image/png
+    parameters:
+      - name: worker_id
+        in: path
+        type: integer
+        required: true
+        description: The ID of the worker.
+    responses:
+      200:
+        description: Entry pass image generated.
+        schema:
+          type: file
+      404:
+        description: Worker not found.
     """
     worker = get_worker_by_id(worker_id)
     if not worker:

@@ -6,13 +6,9 @@ import cv2
 import face_recognition
 from unittest.mock import patch, MagicMock, mock_open
 from datetime import datetime, timedelta
-from flask import Flask
 
 from backend.app import create_app, db
-from backend.components.camera_verification import verificationController
 from backend.components.workers import workerService
-from backend.database.models import Worker
-from backend.components.utils import imageUtils
 
 
 @pytest.fixture
@@ -33,7 +29,9 @@ def app_context():
 def test_worker(app_context):
     """Create a test worker with face embedding from testimg.jpg."""
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    image_path = os.path.normpath(os.path.join(current_dir, "testimg.jpg"))
+    image_path = os.path.normpath(os.path.join(current_dir, "../assets/testimg.jpg"))
+
+
 
     if not os.path.exists(image_path):
         pytest.skip(f"Test image not found at {image_path}")
@@ -41,7 +39,7 @@ def test_worker(app_context):
     with app_context.app_context():
         # Load and create embedding from test image
         test_image = face_recognition.load_image_file(image_path)
-        
+
         # Use workerService.create_worker to create worker properly
         worker = workerService.create_worker(
             name="Jacob Czajka",
@@ -68,7 +66,7 @@ def test_image_with_qrcode(app_context, client, test_worker):
     Returns the composite image as bytes.
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    testimg_path = os.path.normpath(os.path.join(current_dir, "testimg.jpg"))
+    testimg_path = os.path.normpath(os.path.join(current_dir, "../assets/testimg.jpg"))
 
     if not os.path.exists(testimg_path):
         pytest.skip(f"Test image not found at {testimg_path}")
@@ -76,7 +74,7 @@ def test_image_with_qrcode(app_context, client, test_worker):
     with app_context.app_context():
         # Get the QR code from the API endpoint
         response = client.get(f'/api/workers/entrypass/{test_worker.id}')
-        
+
         if response.status_code != 200:
             pytest.skip("Failed to generate QR code from API")
 
@@ -97,14 +95,14 @@ def test_image_with_qrcode(app_context, client, test_worker):
         # Make QR code 70% of face image height (much larger)
         qr_height = int(face_image.shape[0] * 0.7)
         qr_width = int(qr_height)  # QR codes are square - maintain aspect ratio
-        
+
         qr_resized = cv2.resize(qr_code_image, (qr_width, qr_height), interpolation=cv2.INTER_AREA)
 
         # Create composite image by placing QR code beside face image (not on top)
         # Total width = face_width + qr_width + small padding
         padding = 20
         total_width = face_image.shape[1] + qr_width + padding * 2
-        
+
         # Use the taller of the two images as height
         total_height = max(face_image.shape[0], qr_height) + padding * 2
 
@@ -114,16 +112,16 @@ def test_image_with_qrcode(app_context, client, test_worker):
         face_y_start = (total_height - face_image.shape[0]) // 2
         face_x_start = padding
         composite_image[
-            face_y_start:face_y_start + face_image.shape[0],
-            face_x_start:face_x_start + face_image.shape[1]
+        face_y_start:face_y_start + face_image.shape[0],
+        face_x_start:face_x_start + face_image.shape[1]
         ] = face_image
 
         # Place QR code on the right
         qr_y_start = (total_height - qr_height) // 2
         qr_x_start = face_x_start + face_image.shape[1] + padding
         composite_image[
-            qr_y_start:qr_y_start + qr_height,
-            qr_x_start:qr_x_start + qr_width
+        qr_y_start:qr_y_start + qr_height,
+        qr_x_start:qr_x_start + qr_width
         ] = qr_resized
 
         # Encode composite image to bytes
@@ -153,7 +151,7 @@ def test_post_camera_scan_success(client, app_context, test_worker, test_image_w
                 data={'file': (io.BytesIO(test_image_with_qrcode), 'composite.jpg')},
                 content_type='multipart/form-data'
             )
-            i+=1
+            i += 1
 
             if response.status_code == 200:
                 break
@@ -205,7 +203,7 @@ def test_post_camera_scan_empty_file(client):
 def test_post_camera_scan_no_qr_code(client, app_context):
     """Test endpoint returns 400 when no QR code is found in image."""
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    testimg_path = os.path.normpath(os.path.join(current_dir, "testimg.jpg"))
+    testimg_path = os.path.normpath(os.path.join(current_dir, "../assets/testimg.jpg"))
 
     if not os.path.exists(testimg_path):
         pytest.skip(f"Test image not found at {testimg_path}")
@@ -237,10 +235,11 @@ def test_post_camera_scan_expired_qr_code(client, app_context, test_worker, test
 
             # Store original expiration date
             original_expiration = test_worker.expiration_date
-            
+
             # Set worker expiration to the past
-            workerService.extend_worker_expiration(workerService.get_worker_by_id(test_worker.id), datetime.now() - timedelta(days=5))
-            
+            workerService.extend_worker_expiration(workerService.get_worker_by_id(test_worker.id),
+                                                   datetime.now() - timedelta(days=5))
+
             i = 0
             response = 10
             while i != 10:
@@ -252,11 +251,11 @@ def test_post_camera_scan_expired_qr_code(client, app_context, test_worker, test
                 )
                 if response.status_code == 403:
                     break
-                i+= 1
-            
+                i += 1
+
             # Should return 403 because the QR code is expired
             assert response.status_code == 403
-            
+
             # Restore original expiration date
             workerService.extend_worker_expiration(workerService.get_worker_by_id(test_worker.id), original_expiration)
 

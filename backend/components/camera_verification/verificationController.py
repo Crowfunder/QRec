@@ -12,7 +12,7 @@ bp = Blueprint('bp_verification', __name__)
 @bp.route('/api/skan', methods=['POST'])
 def post_camera_scan():
     """
-    [POST] Verifies a worker by scanning a QR code and matching their face.
+    Verifies a worker by scanning a QR code and matching their face.
 
     **Request Body**:
     - `file` (FileStorage): The image file containing the QR code and the worker's face.
@@ -39,6 +39,61 @@ def post_camera_scan():
         "logged": true
     }
     ```
+
+    ---
+    tags:
+      - Verification
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: The image file containing the QR code and the worker's face.
+    responses:
+      200:
+        description: Verification successful.
+        schema:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: Response code (0 = success).
+              example: 0
+            message:
+              type: string
+              description: Human-readable result message.
+              example: "Weryfikacja udana."
+            logged:
+              type: boolean
+              description: Indicates if the entry was logged in the database.
+              example: true
+      400:
+        description: Malformed request (e.g., missing file).
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: 'Brak pliku w żądaniu (oczekiwano klucza "file").'
+      403:
+        description: Permission denied (e.g., face mismatch, expired QR).
+        schema:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: Error code indicating the specific failure reason.
+              example: 12
+            message:
+              type: string
+              example: "Twarz nie pasuje do wzorca."
+            logged:
+              type: boolean
+              example: true
+      500:
+        description: Internal server error.
     """
     if 'file' not in request.files:
         return jsonify({'error': 'Brak pliku w żądaniu (oczekiwano klucza "file").'}), 400

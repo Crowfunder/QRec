@@ -8,15 +8,15 @@ def parse_image(file_bytes):
 
     **Parameters**:
     - `file` (bytes): Raw image bytes.
-    
+
     **Returns**:
     - `ndarray`: Image decoded into ndarray.
     '''
     file_bytes = np.frombuffer(file_bytes, np.uint8)
     image_bgr = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-    img = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-    if img is None:
+    if image_bgr is None:
         raise ValueError("Nie udało się przetworzyć pliku jako obrazu.")
+    img = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
     return img
 
 
@@ -34,8 +34,11 @@ def encode_image(img_array, encode_format=".png"):
     **Raises**:
     - `ValueError` - CV2 failed to encode the image to the format.
     '''
-
-    success, buffer = cv2.imencode(encode_format, img_array)
+    try:
+        # cv2.imencode rzuca błąd dla pustych macierzy
+        success, buffer = cv2.imencode(encode_format, img_array)
+    except cv2.error:
+        success = False
     if not success:
         raise ValueError(f"Nie udało się zenkodować obrazu do formatu {encode_format}")
     image_bytes = buffer.tobytes()
