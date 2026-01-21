@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import './EntryTerminal.css';
 import { dataURItoBlob } from '../utils/imageUtils';
@@ -8,6 +8,8 @@ const EntryTerminal = () => {
   const [status, setStatus] = useState('idle');           // 'idle', 'processing', 'granted', 'denied'
   const [errorMessage, setErrorMessage] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const scanLock = useRef(false);
+  const timerRef = useRef(null);
 
   // Clock Logic
   useEffect(() => {
@@ -32,11 +34,13 @@ const EntryTerminal = () => {
   };
 
   const handleScan = async () => {
-    if (!webcamRef.current || !webcamRef.current.video || webcamRef.current.video.readyState !== 4) return;
-    if (status !== 'idle') return;
+    if (!webcamRef.current?.video?.readyState === 4 || scanLock.current) return;
 
-    setStatus('processing');
-    setErrorMessage('');
+    scanLock.current = true;
+    timerRef.current = setTimeout(() => {
+        setStatus('processing');
+        setErrorMessage('');
+    }, 400);
 
     try {
       const imageSrc = webcamRef.current.getScreenshot();
@@ -48,45 +52,43 @@ const EntryTerminal = () => {
         method: 'POST',
         body: formData, 
       });
-
       const data = await response.json();
 
-      switch (response.status) {
-        case 200:
-          // Access Granted
-          setStatus('granted');
-          break;
-
-        case 403:
-          // Permission Denied (Show Reason)
-          setStatus('denied');
-          setErrorMessage(data.message || "Permission Denied");
-          break;
-
-        case 500:
-          // Server Error (Show Reason, Do not enter)
-          setStatus('denied'); 
-          setErrorMessage(data.message || "System Error");
-          break;
-
-        case 400:
-          // Malformed (e.g., No QR/Face found). 
-          setStatus('idle');
-          return;
-        
-        default:
-          setStatus('denied');
-          setErrorMessage("Unknown Error");
+      if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
       }
+
+      if (response.status === 400) {
+          setStatus('idle');
+          scanLock.current = false;
+          return;
+      }
+
+      const responseMap = {
+          200: { status: 'granted', message: '' },
+          403: { status: 'denied', message: data.message || "No access" },
+          500: { status: 'denied', message: data.message || "System Error" }
+      };
+
+      const result = responseMap[response.status] || { 
+          status: 'denied', 
+          message: "Unknown error" 
+      };
+
+      setStatus(result.status);
+      if (result.message) setErrorMessage(result.message);
 
     } catch (error) {
       console.error("Network Error:", error);
+      if (timerRef.current) clearTimeout(timerRef.current);
       setStatus('denied');
-      setErrorMessage("Network connection failed");
+        setErrorMessage("Connection error");
     }
-
     setTimeout(() => {
-      setStatus('idle');
+        setStatus('idle');
+        setErrorMessage('');
+        scanLock.current = false;
     }, 3000);
   };
 
