@@ -6,13 +6,9 @@ import cv2
 import face_recognition
 from unittest.mock import patch, MagicMock, mock_open
 from datetime import datetime, timedelta
-from flask import Flask
 
 from backend.app import create_app, db
-from backend.components.camera_verification import verificationController
 from backend.components.workers import workerService
-from backend.database.models import Worker
-from backend.components.utils import imageUtils
 
 
 @pytest.fixture

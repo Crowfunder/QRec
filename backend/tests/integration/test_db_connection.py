@@ -7,9 +7,8 @@ from backend.database.models import db, Worker
 
 def test_database_connection_alive(app):
     """
-    Testuje, czy aplikacja może nawiązać połączenie z bazą danych
-    i wykonać proste zapytanie SQL (SELECT 1).
-    Nie wymaga fixtury db_session, wystarczy kontekst aplikacji.
+    Tests whether the application can connect to the database and execute a simple SQL query (SELECT 1).
+    It doesn't require a db_session configuration; the application context is sufficient.
     """
     with app.app_context():
         try:
@@ -24,8 +23,8 @@ def test_database_connection_alive(app):
 
 def test_database_schema_creation(db_session):
     """
-    Sprawdza, czy SQLAlchemy poprawnie utworzyło tabele w bazie danych.
-    Wymaga fixtury db_session, która wywołuje db.create_all().
+    Verifies that SQLAlchemy has successfully created the tables in the database.
+    Requires the db_session fixture, which calls db.create_all().
     """
     # Używamy inspect do pobrania informacji o strukturze bazy
     inspector = inspect(db_session.engine)
@@ -35,12 +34,15 @@ def test_database_schema_creation(db_session):
     assert "workers" in tables
     assert "entries" in tables
 
+# ============================================================================
+# Test Transaction Management
+# ============================================================================
 
 def test_database_transaction_commit_and_rollback(db_session):
     """
-    Test integracyjny sprawdzający działanie sesji bazy danych:
-    1. Poprawny zapis (commit).
-    2. Wycofanie zmian przy błędzie (rollback).
+    Integration test to verify the functionality of the database session:
+    1. Successful write (commit).
+    2. Rollback on error.
     """
     # 1. Test Commita
     worker = Worker(
@@ -71,9 +73,6 @@ def test_database_transaction_commit_and_rollback(db_session):
     with pytest.raises(IntegrityError):
         db_session.session.commit()
 
-    # SQLAlchemy automatycznie robi rollback przy wyjątku w commicie,
-    # ale sesja pozostaje w stanie "inactive" lub wymaga ręcznego rollback w niektórych konfiguracjach.
-    # W testach sprawdźmy po prostu czy sesja nadal żyje po rollbacku.
     db_session.session.rollback()
 
     # Upewniamy się, że błędny rekord nie został dodany

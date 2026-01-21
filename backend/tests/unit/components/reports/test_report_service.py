@@ -10,8 +10,8 @@ from backend.components.reports.reportService import log_worker_entry, get_repor
 
 def test_log_worker_entry_success_removes_image(db_session, created_worker):
     """
-    Sprawdza, czy przy udanym wejściu (code=0) zdjęcie (image) jest usuwane (ustawiane na None),
-    nawet jeśli zostało przekazane do funkcji.
+    Checks whether, on successful entry (code=0), the image is deleted (set to None),
+    even if it was passed to the function.
     """
     fake_image = b'some_image_bytes'
 
@@ -32,7 +32,7 @@ def test_log_worker_entry_success_removes_image(db_session, created_worker):
 
 def test_log_worker_entry_failure_keeps_image(db_session, created_worker):
     """
-    Sprawdza, czy przy nieudanym wejściu (code!=0) zdjęcie jest zachowywane w bazie.
+    Checks whether the photo is saved in the database on an unsuccessful entry (code!=0).
     """
     fake_image = b'evidence_image_bytes'
 
@@ -51,7 +51,7 @@ def test_log_worker_entry_failure_keeps_image(db_session, created_worker):
 
 def test_log_worker_entry_unknown_person(db_session):
     """
-    Sprawdza logowanie wejścia dla osoby nierozpoznanej (worker=None).
+    Checks login entry for an unrecognized person (worker=None).
     """
     entry = log_worker_entry(
         code=2,
@@ -72,8 +72,9 @@ def test_log_worker_entry_unknown_person(db_session):
 @pytest.fixture
 def report_data_setup(db_session, created_worker):
     """
-    Fixture pomocnicza, która tworzy zestaw danych testowych do raportów.
-    Tworzy 4 wpisy o różnych datach i statusach.
+    A support fixture that creates a test data set for reporting.
+
+    Creates 4 entries with different dates and statuses.
     """
     base_time = datetime(2023, 1, 1, 12, 0, 0)
 
@@ -107,7 +108,7 @@ def report_data_setup(db_session, created_worker):
 
 
 def test_get_report_data_all(db_session, report_data_setup):
-    """Test pobierania wszystkich danych (brak filtrów)."""
+    """Test downloading all data (no filters)."""
     results = get_report_data()
 
     assert len(results) == 4
@@ -122,7 +123,7 @@ def test_get_report_data_all(db_session, report_data_setup):
 
 
 def test_get_report_data_filter_by_worker(db_session, report_data_setup):
-    """Test filtrowania po ID pracownika."""
+    """Test filtering by employee ID."""
     worker1 = report_data_setup["worker1"]
 
     results = get_report_data(worker_id=worker1.id)
@@ -135,7 +136,7 @@ def test_get_report_data_filter_by_worker(db_session, report_data_setup):
 
 
 def test_get_report_data_filter_by_date(db_session, report_data_setup):
-    """Test filtrowania po zakresie dat."""
+    """Test filtering by date range."""
     base_time = report_data_setup["base_time"]
 
     # Filtrujemy od dnia +1 do dnia +2 (powinny być 2 wpisy)
@@ -151,7 +152,7 @@ def test_get_report_data_filter_by_date(db_session, report_data_setup):
 
 
 def test_get_report_data_filter_valid_invalid(db_session, report_data_setup):
-    """Test filtrowania po statusie (valid/invalid)."""
+    """Test filtering by status (valid/invalid)."""
 
     # 1. Tylko poprawne (code == 0) -> Powinny być 2 (jeden workera1, jeden workera2)
     valid_results = get_report_data(show_valid=True, show_invalid=False)

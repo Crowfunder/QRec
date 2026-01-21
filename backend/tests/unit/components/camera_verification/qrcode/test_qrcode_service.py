@@ -93,8 +93,8 @@ def test_decode_qr_image_success(mock_decode, fake_image):
 @patch('backend.components.camera_verification.qrcode.qrcodeService.pyzbar.decode')
 def test_decode_qr_image_multiple_codes(mock_decode, fake_image):
     """
-    Scenariusz negatywny: Wykryto więcej niż jeden kod QR.
-    Oczekiwany wyjątek: MultipleCodesError.
+    Negative scenario: More than one QR code detected.
+    Expected exception: MultipleCodesError.
     """
     # Setup
     obj1 = MagicMock()
@@ -112,8 +112,8 @@ def test_decode_qr_image_multiple_codes(mock_decode, fake_image):
 @patch('backend.components.camera_verification.qrcode.qrcodeService.pyzbar.decode')
 def test_decode_qr_image_no_code_empty_list(mock_decode, fake_image):
     """
-    Scenariusz negatywny: Biblioteka zwraca pustą listę (brak kodów).
-    Oczekiwany wyjątek: NoCodeFoundError.
+    Negative scenario: The library returns an empty list (no codes).
+    Expected exception: NoCodeFoundError.
     """
     # Setup
     mock_decode.return_value = []
@@ -126,8 +126,8 @@ def test_decode_qr_image_no_code_empty_list(mock_decode, fake_image):
 @patch('backend.components.camera_verification.qrcode.qrcodeService.pyzbar.decode')
 def test_decode_qr_image_no_code_none(mock_decode, fake_image):
     """
-    Scenariusz negatywny: Biblioteka zwraca None (teoretyczny przypadek błędu biblioteki).
-    Oczekiwany wyjątek: NoCodeFoundError.
+    Negative scenario: The library returns None (theoretical case of a library error).
+    Expected exception: NoCodeFoundError.
     """
     # Setup
     mock_decode.return_value = None
@@ -151,7 +151,5 @@ def test_decode_qr_image_decoding_utf8_error(mock_decode, fake_image):
     mock_decode.return_value = [mock_qr_obj]
 
     # Action & Assert
-    # Metoda .decode("utf-8") rzuci UnicodeDecodeError, chyba że dodamy obsługę errors='ignore'.
-    # W obecnym kodzie nie ma obsługi błędów dekodowania, więc oczekujemy UnicodeDecodeError.
     with pytest.raises(UnicodeDecodeError):
         decode_qr_image(fake_image)

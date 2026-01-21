@@ -4,8 +4,10 @@ from unittest.mock import patch, MagicMock
 from backend.components.camera_verification.qrcode.qrcodeService import NoCodeFoundError
 from backend.components.camera_verification.faceid.faceidService import FaceNotMatchingError
 
+# ============================================================================
+# Test Helpers & Fixtures
+# ============================================================================
 
-# Helper do tworzenia mocka odpowiedzi z handlera błędów
 def mock_response_obj(code, message, logged=True):
     r = MagicMock()
     r.code = code
@@ -17,19 +19,26 @@ def mock_response_obj(code, message, logged=True):
 
 @pytest.fixture
 def mock_image_file():
-    """Tworzy fałszywy plik obrazu do przesłania w formularzu."""
+    """Creates a fake image file to upload in the form."""
     return (io.BytesIO(b"fake_image_bytes"), "test_image.jpg")
 
+# ============================================================================
+# Test Basic Validation (Input)
+# ============================================================================
 
 def test_post_scan_no_file(client):
     """
-    Sprawdza zachowanie endpointu, gdy nie przesłano pliku.
-    Oczekiwany status: 400.
+    Checks the endpoint's behavior when a file has not been transferred.
+    Expected status: 400.
     """
     response = client.post('/api/skan')
     assert response.status_code == 400
     assert "Brak pliku" in response.get_json()['error']
 
+
+# ============================================================================
+# Test Happy Path (Success)
+# ============================================================================
 
 @patch('backend.components.camera_verification.verificationController.parse_image')
 @patch('backend.components.camera_verification.verificationController.get_worker_from_qr_code')
@@ -38,8 +47,8 @@ def test_post_scan_no_file(client):
 @patch('backend.components.camera_verification.verificationController.log_worker_entry')
 def test_post_scan_success(mock_log, mock_handler, mock_verify, mock_get_worker, mock_parse, client, mock_image_file):
     """
-    Scenariusz pozytywny: poprawny kod QR i pasująca twarz.
-    Oczekiwany status: 200.
+    Positive scenario: valid QR code and matching face.
+    Expected status: 200.
     """
     # 1. Konfiguracja mocków dla sukcesu
     mock_get_worker.return_value = MagicMock(id=1, name="Jan Testowy")
@@ -61,6 +70,9 @@ def test_post_scan_success(mock_log, mock_handler, mock_verify, mock_get_worker,
     # Sprawdzenie czy wywołano logowanie
     mock_log.assert_called_once()
 
+# ============================================================================
+# Test Error Mapping Logic (Exceptions -> HTTP Codes)
+# ============================================================================
 
 @patch('backend.components.camera_verification.verificationController.parse_image')
 @patch('backend.components.camera_verification.verificationController.get_worker_from_qr_code')
@@ -68,8 +80,8 @@ def test_post_scan_success(mock_log, mock_handler, mock_verify, mock_get_worker,
 @patch('backend.components.camera_verification.verificationController.log_worker_entry')
 def test_post_scan_qr_error_bad_request(mock_log, mock_handler, mock_get_worker, mock_parse, client, mock_image_file):
     """
-    Scenariusz błędu klienta (400): np. brak kodu QR lub uszkodzony kod.
-    Kontroler mapuje kody < 10 na HTTP 400.
+    Client error scenario (400): e.g., missing QR code or corrupted code.
+    The controller maps codes < 10 to HTTP 400.
     """
     # Symulujemy rzucenie wyjątku przez serwis QR
     mock_get_worker.side_effect = NoCodeFoundError("Nie znaleziono kodu")
@@ -94,8 +106,8 @@ def test_post_scan_qr_error_bad_request(mock_log, mock_handler, mock_get_worker,
 def test_post_scan_face_mismatch_forbidden(mock_log, mock_handler, mock_verify, mock_get_worker, mock_parse, client,
                                            mock_image_file):
     """
-    Scenariusz błędu uprawnień (403): Twarz nie pasuje do wzorca.
-    Kontroler mapuje kody >= 10 (które nie są wielokrotnością 10) na HTTP 403.
+    Permission error scenario (403): Face does not match pattern.
+    The controller maps codes >= 10 (that are not a multiple of 10) to HTTP 403.
     """
     mock_get_worker.return_value = MagicMock(id=1)
 
@@ -121,8 +133,8 @@ def test_post_scan_face_mismatch_forbidden(mock_log, mock_handler, mock_verify, 
 @patch('backend.components.camera_verification.verificationController.log_worker_entry')
 def test_post_scan_internal_server_error(mock_log, mock_handler, mock_get_worker, mock_parse, client, mock_image_file):
     """
-    Scenariusz błędu serwera (500).
-    Kontroler mapuje kody będące wielokrotnością 10 (np. 20, 30) lub -1 na HTTP 500.
+    Server error scenario (500).
+    The controller maps codes that are multiples of 10 (e.g., 20, 30) or -1 to HTTP 500.
     """
     mock_get_worker.side_effect = Exception("Nieoczekiwany błąd bazy danych")
 
@@ -137,6 +149,9 @@ def test_post_scan_internal_server_error(mock_log, mock_handler, mock_get_worker
 
     mock_log.assert_called_once()
 
+# ============================================================================
+# Test Audit Logging
+# ============================================================================
 
 @patch('backend.components.camera_verification.verificationController.parse_image')
 @patch('backend.components.camera_verification.verificationController.get_worker_from_qr_code')
@@ -146,8 +161,8 @@ def test_post_scan_internal_server_error(mock_log, mock_handler, mock_get_worker
 def test_scan_logs_even_on_failure(mock_log, mock_handler, mock_verify, mock_get_worker, mock_parse, client,
                                    mock_image_file):
     """
-    Weryfikuje, czy funkcja log_worker_entry jest wywoływana nawet w przypadku niepowodzenia,
-    jeśli handler zwróci flagę logged=True.
+    Verifies that the log_worker_entry function is called even if it fails if the handler returns
+    the logged=True flag.
     """
     mock_verify.side_effect = FaceNotMatchingError("Błąd")
 

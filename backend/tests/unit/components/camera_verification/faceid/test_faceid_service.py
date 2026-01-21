@@ -17,13 +17,13 @@ from backend.components.camera_verification.faceid.faceidService import (
 from backend.database.models import Worker
 
 
-# --------------------------------------------------------------------------
-# Fixtures
-# --------------------------------------------------------------------------
+# ============================================================================
+# Fixtures & Setup
+# ============================================================================
 
 @pytest.fixture
 def mock_worker(app):
-    """Tworzy prostego mocka obiektu Worker."""
+    """Creates a simple mock of a Worker object."""
     with app.app_context():
         worker = MagicMock(spec=Worker)
         worker.id = 1
@@ -32,7 +32,7 @@ def mock_worker(app):
 
 @pytest.fixture
 def fake_image():
-    """Tworzy pustą tablicę numpy udającą obraz."""
+    """Creates an empty numpy array imitating an image."""
     return np.zeros((100, 100, 3), dtype=np.uint8)
 
 
@@ -47,7 +47,7 @@ def test_image_path():
 
 @pytest.fixture
 def test_worker(app, db_session, test_image_path):  # <--- Dodano db_session
-    """Tworzy prawdziwego workera z embeddingiem z pliku testimg.jpg."""
+    """Creates a real worker with embedding from the testimg.jpg file."""
     with app.app_context():
         # Load and create embedding from test image
         test_image = face_recognition.load_image_file(test_image_path)
@@ -67,7 +67,7 @@ def test_worker(app, db_session, test_image_path):  # <--- Dodano db_session
 @patch('backend.components.camera_verification.faceid.faceidService.face_recognition.face_encodings')
 @patch('backend.components.camera_verification.faceid.faceidService.get_worker_embedding')
 def test_verify_worker_face_success_mocked(mock_get_embedding, mock_encodings, mock_compare, mock_worker, fake_image):
-    """Test sukcesu z wykorzystaniem mocków."""
+    """Success Test Using Mocks."""
     fake_worker_embedding = [np.random.rand(128)]
     fake_scanned_embedding = [np.random.rand(128)]
 
@@ -83,7 +83,7 @@ def test_verify_worker_face_success_mocked(mock_get_embedding, mock_encodings, m
 @patch('backend.components.camera_verification.faceid.faceidService.face_recognition.face_encodings')
 @patch('backend.components.camera_verification.faceid.faceidService.get_worker_embedding')
 def test_verify_worker_face_multiple_faces_mocked(mock_get_embedding, mock_encodings, mock_worker, fake_image):
-    """Test błędu wielu twarzy (mock)."""
+    """Multiple Face Error Test (Mock)."""
     mock_get_embedding.return_value = [np.random.rand(128)]
     mock_encodings.return_value = [np.random.rand(128), np.random.rand(128)]
 
@@ -94,7 +94,7 @@ def test_verify_worker_face_multiple_faces_mocked(mock_get_embedding, mock_encod
 @patch('backend.components.camera_verification.faceid.faceidService.face_recognition.face_encodings')
 @patch('backend.components.camera_verification.faceid.faceidService.get_worker_embedding')
 def test_verify_worker_face_not_matching_mocked(mock_get_embedding, mock_encodings, mock_compare, mock_worker, fake_image):
-    """Test braku dopasowania twarzy (mock)."""
+    """Face mismatch test (mock)."""
     mock_get_embedding.return_value = [np.random.rand(128)]
     mock_encodings.return_value = [np.random.rand(128)]
     mock_compare.return_value = [False]
@@ -151,7 +151,7 @@ def test_verify_worker_face_no_faces_detected(app, test_worker):
 @patch('backend.components.camera_verification.faceid.faceidService.get_worker_embedding')
 def test_verify_worker_face_not_matching(mock_get_embedding, mock_encodings, mock_compare, mock_worker, fake_image):
     """
-    Sprawdza, czy rzucany jest wyjątek FaceNotMatchingError, gdy twarz nie pasuje do pracownika.
+    Checks whether a FaceNotMatchingError exception is thrown when a face does not match the worker.
     """
     mock_get_embedding.return_value = [np.random.rand(128)]
     mock_encodings.return_value = [np.random.rand(128)]
@@ -166,7 +166,7 @@ def test_verify_worker_face_not_matching(mock_get_embedding, mock_encodings, moc
 @patch('backend.components.camera_verification.faceid.faceidService.get_worker_embedding')
 def test_verify_worker_face_library_error(mock_get_embedding, mock_encodings, mock_worker, fake_image):
     """
-    Sprawdza, czy ogólne błędy biblioteki face_recognition są łapane i rzucane jako FaceIDError.
+    Checks whether generic face_recognition library errors are caught and thrown as FaceIDError.
     """
     mock_get_embedding.return_value = [np.random.rand(128)]
     # Symulujemy błąd biblioteki (np. problem z pamięcią, zły format danych)

@@ -2,13 +2,15 @@ import pytest
 from datetime import datetime, timedelta
 from backend.database.models import Entry, Worker
 
+# ============================================================================
+# Test Fixtures & Data Setup
+# ============================================================================
 
 @pytest.fixture
 def populate_entries(db_session, created_worker):
     """
-    Fixture pomocnicza, która dodaje serię wpisów (Entry) do bazy danych
-    w celu przetestowania filtrowania i statystyk.
-    Tworzy wpisy dla 'created_worker' (z conftest) oraz dodatkowego pracownika.
+    A helper fixture that adds a series of entries to the database to test filtering and statistics.
+    It creates entries for 'created_worker' (from conftest) and an additional worker.
     """
     # Dodajemy drugiego pracownika dla różnorodności
     worker_2 = Worker(
@@ -67,9 +69,14 @@ def populate_entries(db_session, created_worker):
     }
 
 
+# ============================================================================
+# Test GET /api/raport - Basic Retrieval
+# ============================================================================
+
+
 def test_get_report_empty(client, db_session):
     """
-    Testuje pobranie raportu, gdy baza jest pusta.
+    Tests report download when the database is empty.
     """
     response = client.get('/api/raport')
 
@@ -83,7 +90,7 @@ def test_get_report_empty(client, db_session):
 
 def test_get_report_all_data(client, populate_entries):
     """
-    Testuje pobranie wszystkich danych bez filtrów (domyślne sortowanie).
+    Tests downloading all data without filters (default sorting).
     """
     response = client.get('/api/raport')
 
@@ -102,9 +109,13 @@ def test_get_report_all_data(client, populate_entries):
     assert stats['success_rate_percent'] == 50.0
 
 
+# ============================================================================
+# Test GET /api/raport - Filtering Logic
+# ============================================================================
+
 def test_filter_by_worker_id(client, populate_entries):
     """
-    Testuje filtrowanie po ID pracownika.
+    Testing filtering by employee ID.
     """
     worker_1 = populate_entries['worker_1']
 
@@ -121,7 +132,7 @@ def test_filter_by_worker_id(client, populate_entries):
 
 def test_filter_by_date_range(client, populate_entries):
     """
-    Testuje filtrowanie po dacie (date_from, date_to).
+    Tests filtering by date (date_from, date_to).
     """
     # Chcemy pobrać wpisy tylko z "dzisiaj"
     today_str = datetime.now().strftime('%Y-%m-%d')
@@ -140,7 +151,7 @@ def test_filter_by_date_range(client, populate_entries):
 
 def test_filter_valid_only(client, populate_entries):
     """
-    Testuje flagę 'wejscia_poprawne' - powinna zwrócić tylko wpisy z kodem 0.
+    Tests the 'wejscia_poprawne' flag - it should return only entries with code 0.
     """
     # Przekazujemy parametr 'wejscia_poprawne' (wystarczy jego obecność)
     response = client.get('/api/raport?wejscia_poprawne=true')
@@ -155,7 +166,7 @@ def test_filter_valid_only(client, populate_entries):
 
 def test_filter_invalid_only(client, populate_entries):
     """
-    Testuje flagę 'wejscia_niepoprawne' - powinna zwrócić wpisy z kodem != 0.
+    Tests the 'wejscia_niepoprawne' flag - it should return entries with the code != 0.
     """
     response = client.get('/api/raport?wejscia_niepoprawne=true')
 
@@ -169,17 +180,22 @@ def test_filter_invalid_only(client, populate_entries):
 
 def test_invalid_date_format(client):
     """
-    Testuje obsługę błędów dla złego formatu daty (400 Bad Request).
+    Tests error handling for bad date format (400 Bad Request).
     """
     response = client.get('/api/raport?date_from=bad-format')
     assert response.status_code == 400
     assert 'error' in response.get_json()
 
 
+# ============================================================================
+# Test GET /api/raport/pdf - PDF Generation
+# ============================================================================
+
+
 def test_pdf_generation(client, populate_entries):
     """
-    Testuje endpoint generowania PDF (/api/raport/pdf).
-    Sprawdza czy zwracany jest poprawny typ MIME i czy nie ma błędu 500.
+    Tests the PDF generation endpoint (/api/report/pdf).
+    Checks whether the correct MIME type is returned and whether there is no 500 error.
     """
     response = client.get('/api/raport/pdf')
 
@@ -194,16 +210,20 @@ def test_pdf_generation(client, populate_entries):
 
 def test_pdf_generation_empty(client, db_session):
     """
-    Testuje generowanie PDF przy braku danych (powinien wygenerować pusty raport bez błędu).
+    Tests PDF generation with no data (should generate an empty report without error).
     """
     response = client.get('/api/raport/pdf')
     assert response.status_code == 200
     assert response.headers['Content-Type'] == 'application/pdf'
 
+# ============================================================================
+# Test Statistics Logic
+# ============================================================================
+
 
 def test_statistics_calculation(client, populate_entries):
     """
-    Szczegółowy test poprawności obliczania statystyk w JSON.
+    Detailed test of the correctness of calculating statistics in JSON.
     """
     worker_1 = populate_entries['worker_1']
 

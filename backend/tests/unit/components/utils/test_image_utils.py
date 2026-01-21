@@ -11,28 +11,23 @@ from backend.components.utils import imageUtils
 
 def test_parse_image_success():
     """
-    Sprawdza, czy poprawne bajty obrazu są konwertowane na macierz numpy.
-    Weryfikuje również, czy wynik ma poprawny kształt.
+    Checks whether valid image bytes are converted to a numpy matrix.
+    It also verifies that the result is of the correct shape.
     """
-    # 1. Przygotuj sztuczny obrazek (10x10, czarny) w pamięci
-    # OpenCV domyślnie używa BGR, więc tworzymy go jako BGR
     original_img = np.zeros((10, 10, 3), dtype=np.uint8)
 
-    # 2. Zakoduj go do bajtów (symulacja uploadu pliku)
     _, buffer = cv2.imencode('.png', original_img)
     image_bytes = buffer.tobytes()
 
-    # 3. Wywołaj testowaną funkcję
     result_img = parse_image(image_bytes)
 
-    # 4. Asercje
     assert isinstance(result_img, np.ndarray)
     assert result_img.shape == (10, 10, 3)
 
 
 def test_parse_image_color_conversion():
     """
-    Sprawdza, czy funkcja poprawnie konwertuje format kolorów z BGR na RGB.
+    Checks whether the function correctly converts the color format from BGR to RGB.
     """
     # Tworzymy obraz 1x1 piksel w kolorze NIEBIESKIM.
     # W OpenCV (BGR) niebieski to [255, 0, 0].
@@ -54,8 +49,8 @@ def test_parse_image_color_conversion():
 
 def test_parse_image_invalid_bytes():
     """
-    Sprawdza, czy funkcja rzuca ValueError, gdy otrzyma nieprawidłowe bajty
-    (np. plik tekstowy zamiast obrazka).
+    Checks whether a function throws a ValueError when it receives invalid bytes
+    (e.g., a text file instead of an image).
     """
     garbage_bytes = b"to nie jest obrazek, tylko losowy tekst"
 
@@ -69,7 +64,7 @@ def test_parse_image_invalid_bytes():
 
 def test_encode_image_default_png():
     """
-    Sprawdza domyślne kodowanie do formatu PNG.
+    Checks default encoding to PNG format.
     """
     # Tworzymy prosty obraz RGB
     img = np.zeros((10, 10, 3), dtype=np.uint8)
@@ -87,7 +82,7 @@ def test_encode_image_default_png():
 
 def test_encode_image_custom_format_jpg():
     """
-    Sprawdza kodowanie do formatu JPG.
+    Checks encoding to JPG format.
     """
     img = np.zeros((10, 10, 3), dtype=np.uint8)
 
@@ -101,9 +96,9 @@ def test_encode_image_custom_format_jpg():
 
 def test_encode_image_failure():
     """
-    Sprawdza, czy funkcja rzuca ValueError, gdy OpenCV nie uda się zakodować obrazu.
-    Symulujemy to podając nieprawidłowy format pliku lub pustą tablicę w sposób,
-    który powoduje błąd funkcji cv2.imencode.
+    Checks whether the function throws a ValueError when OpenCV fails to encode an image.
+    We simulate this by providing an invalid file format or an empty array in a way that causes the cv2.
+    imencode function to fail.
     """
     # Pusta tablica lub tablica o złym kształcie zazwyczaj zwróci False w imencode
     bad_img = np.zeros((0, 0, 0), dtype=np.uint8)
